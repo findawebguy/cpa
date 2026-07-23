@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  cpa-platform:
+    build: .
+    container_name: cpa_adaptive_platform
+    ports:
+      - "8005:8000"
+    environment:
+      - PROJECT_NAME=CPA Adaptive Exam Platform
+      - SECRET_KEY=cpa-secret-key-super-secure-change-in-production
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+      - DATABASE_URL=sqlite:///./cpa_prep.db
+    volumes:
+      - ./cpa_prep.db:/app/cpa_prep.db
+    restart: unless-stopped

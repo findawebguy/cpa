@@ -1,0 +1,129 @@
+// CPA Exam Platform - Async REST API Client Module
+
+const API_BASE_URL = "/api/v1";
+
+class CPAApiClient {
+    constructor() {
+        this.token = localStorage.getItem("cpa_jwt_token") || null;
+    }
+
+    setToken(token) {
+        this.token = token;
+        if (token) {
+            localStorage.setItem("cpa_jwt_token", token);
+        } else {
+            localStorage.removeItem("cpa_jwt_token");
+        }
+    }
+
+    getHeaders() {
+        const headers = {
+            "Content-Type": "application/json"
+        };
+        if (this.token) {
+            headers["Authorization"] = `Bearer ${this.token}`;
+        }
+        return headers;
+    }
+
+    async request(endpoint, options = {}) {
+        const url = `${API_BASE_URL}${endpoint}`;
+        const config = {
+            ...options,
+            headers: {
+                ...this.getHeaders(),
+                ...(options.headers || {})
+            }
+        };
+
+        try {
+            const response = await fetch(url, config);
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({ detail: "Network error" }));
+                throw new Error(errData.detail || `HTTP Error ${response.status}`);
+            }
+            return await response.json();
+        } catch (err) {
+            console.error(`API Error on [${endpoint}]:`, err);
+            throw err;
+        }
+    }
+
+    // Auth API
+    async login(email, password) {
+        const res = await this.request("/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ email, password })
+        });
+        if (res.access_token) {
+            this.setToken(res.access_token);
+        }
+        return res;
+    }
+
+    async register(email, password) {
+        const res = await this.request("/auth/register", {
+            method: "POST",
+            body: JSON.stringify({ email, password })
+        });
+        if (res.access_token) {
+            this.setToken(res.access_token);
+        }
+        return res;
+    }
+
+    async getUserProfile() {
+        return await this.request("/auth/user/profile");
+    }
+
+    // Curriculum API
+    async getCourses() {
+        return await this.request("/courses");
+    }
+
+    async getSyllabus(trackCode) {
+        return await this.request(`/courses/${trackCode}/syllabus`);
+    }
+
+    async getNode(nodeKey) {
+        return await this.request(`/nodes/${nodeKey}`);
+    }
+
+    async submitNodeAnswer(nodeKey, selectedIndex, confidence) {
+        return await this.request(`/nodes/${nodeKey}/submit`, {
+            method: "POST",
+            body: JSON.stringify({ index: selectedIndex, confidence })
+        });
+    }
+
+    // Task-Based Simulation API
+    async getTBS(simulationCode = "tbs-1") {
+        return await this.request(`/tbs/${simulationCode}`);
+    }
+
+    async submitTBS(simulationCode = "tbs-1", rows = []) {
+        return await this.request(`/tbs/${simulationCode}/submit`, {
+            method: "POST",
+            body: JSON.stringify({ rows })
+        });
+    }
+
+    // Flashcards API
+    async getFlashcards(domain = "FAR") {
+        return await this.request(`/flashcards?domain=${domain}`);
+    }
+
+    async rateFlashcard(cardId, rating) {
+        return await this.request(`/flashcards/${cardId}/rate`, {
+            method: "POST",
+            body: JSON.stringify({ rating })
+        });
+    }
+
+    // Analytics API
+    async getDiagnostics() {
+        return await this.request("/analytics/diagnostics");
+    }
+}
+
+window.cpaApi = new CPAApiClient();

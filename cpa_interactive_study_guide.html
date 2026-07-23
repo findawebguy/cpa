@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPA Exam Adaptive Learning Platform</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti for Mastered Modules -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        cpa: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#bae0fd',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            800: '#0c4a6e',
+                            900: '#0a3651',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in { animation: fadeIn 0.35s ease-out forwards; }
+        .slide-up { animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .flip-card { perspective: 1000px; }
+        .flip-card-inner { transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { backface-visibility: hidden; }
+        .flip-card-back { transform: rotateY(180deg); }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom scrollbar for clean dashboard view */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="h-full flex flex-col text-slate-800 antialiased selection:bg-sky-500 selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Course Title -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-black text-xl shadow-lg shadow-sky-500/20">
+                        CPA
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-bold text-lg leading-none">CPA Adaptive Path</h1>
+                            <span class="bg-sky-500/20 text-sky-300 text-xs px-2 py-0.5 rounded border border-sky-400/30 font-mono">2026 Evolution</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Dynamic Adaptive Learning & Task Simulations</p>
+                    </div>
+                </div>
+
+                <!-- Exam Track Switcher -->
+                <div class="hidden md:flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700/60">
+                    <button onclick="switchExamTrack('FAR')" id="track-btn-FAR" class="track-btn px-3 py-1.5 rounded-md text-xs font-semibold transition bg-sky-600 text-white shadow">FAR (Financial)</button>
+                    <button onclick="switchExamTrack('AUD')" id="track-btn-AUD" class="track-btn px-3 py-1.5 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white">AUD (Audit)</button>
+                    <button onclick="switchExamTrack('REG')" id="track-btn-REG" class="track-btn px-3 py-1.5 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white">REG (Tax & Law)</button>
+                </div>
+
+                <!-- User Stats & Progress Summary -->
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700 text-xs">
+                        <i class="fa-solid fa-fire text-amber-500 text-sm animate-pulse"></i>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] leading-tight">STREAK</span>
+                            <span id="stat-streak" class="font-bold font-mono text-amber-400">4 Days</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700 text-xs">
+                        <i class="fa-solid fa-brain text-sky-400 text-sm"></i>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] leading-tight">MASTERY</span>
+                            <span id="stat-mastery" class="font-bold font-mono text-sky-400">68%</span>
+                        </div>
+                    </div>
+
+                    <button onclick="toggleAudio()" id="audio-btn" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition" title="Toggle Sound Effects">
+                        <i class="fa-solid fa-volume-high" id="audio-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- View Switcher Sub-Header -->
+    <div class="bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between overflow-x-auto py-2 gap-2">
+                <nav class="flex space-x-1 sm:space-x-2">
+                    <button onclick="switchView('adaptive')" id="tab-adaptive" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-sky-50 text-sky-700 border border-sky-200">
+                        <i class="fa-solid fa-route text-sky-600"></i> Adaptive Learn Path
+                    </button>
+                    <button onclick="switchView('simulation')" id="tab-simulation" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+                        <i class="fa-solid fa-table-cells text-slate-500"></i> Task-Based Simulations (TBS)
+                    </button>
+                    <button onclick="switchView('flashcards')" id="tab-flashcards" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+                        <i class="fa-solid fa-layer-group text-slate-500"></i> Concept Flashcards
+                    </button>
+                    <button onclick="switchView('analytics')" id="tab-analytics" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+                        <i class="fa-solid fa-chart-line text-slate-500"></i> Analytics & Diagnostics
+                    </button>
+                </nav>
+
+                <div class="hidden lg:flex items-center gap-2 text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full font-medium">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Adaptive AI Difficulty Engine Active
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- Adaptive View Container -->
+        <div id="view-adaptive" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Sidebar: Multi-Week Curriculum Selector -->
+            <div class="lg:col-span-4 space-y-4">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                        <div>
+                            <h2 class="font-bold text-sm uppercase tracking-wider text-slate-300">Course Syllabus</h2>
+                            <p class="text-xs text-slate-400" id="syllabus-subhead">FAR: Financial Accounting</p>
+                        </div>
+                        <span class="bg-sky-500/20 text-sky-300 text-xs px-2.5 py-1 rounded-full font-mono border border-sky-400/30">7 Weeks</span>
+                    </div>
+                    
+                    <div class="divide-y divide-slate-100 max-h-[600px] overflow-y-auto" id="syllabus-list">
+                        <!-- Dynamic Syllabus Nodes injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Metacognition & Difficulty Gauge Card -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl p-4 shadow-sm border border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Current Engine Mode</span>
+                        <span id="difficulty-badge" class="bg-amber-500/20 text-amber-300 border border-amber-400/30 text-[10px] uppercase font-mono px-2 py-0.5 rounded font-bold">Standard Difficulty</span>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                        The engine automatically presents scaffolded remediations if you struggle, and accelerates to high-difficulty CPA exam simulations when you display high confidence and accuracy.
+                    </p>
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-[11px] font-mono text-slate-400">
+                            <span>Concept Level</span>
+                            <span id="concept-level-text" class="text-sky-400 font-bold">Level 2 / 5</span>
+                        </div>
+                        <div class="w-full bg-slate-700/60 rounded-full h-2 overflow-hidden">
+                            <div id="concept-level-bar" class="bg-sky-400 h-2 rounded-full transition-all duration-500" style="width: 40%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Interactive Workspace -->
+            <div class="lg:col-span-8 flex flex-col space-y-4">
+                
+                <!-- Main Card Wrapper -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-[560px] relative">
+                    
+                    <!-- Card Top Dynamic Context Bar -->
+                    <div class="bg-slate-50 border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span id="node-type-badge" class="bg-sky-100 text-sky-800 text-xs px-2.5 py-1 rounded-full font-bold">
+                                QUESTION NODE
+                            </span>
+                            <span id="current-concept-tag" class="text-xs font-medium text-slate-500">
+                                Week 1 • Concept 1: The Accounting Cycle
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs font-mono text-slate-500">
+                            <span>Target Time: <span class="text-slate-700 font-bold">1.5m</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Body Container -->
+                    <div id="adaptive-body" class="p-6 flex-grow flex flex-col justify-between">
+                        <!-- Content rendered dynamically via JS -->
+                    </div>
+
+                    <!-- Interactive Remediation / Explanation Drawer -->
+                    <div id="feedback-drawer" class="hidden border-t border-slate-200 bg-slate-50 p-6 slide-up">
+                        <div id="feedback-content">
+                            <!-- Injected by JavaScript -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Simulation View Container (TBS Exam Simulator) -->
+        <div id="view-simulation" class="hidden space-y-6 fade-in">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-bold uppercase">CPA Exam Simulator</span>
+                            <span class="text-xs text-slate-500">Task-Based Simulation (TBS-2026-04)</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900 mt-1">Adjusting Journal Entry & Financial Statement Reconciliation</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="resetTBS()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+                            <i class="fa-solid fa-rotate-left mr-1"></i> Reset Work
+                        </button>
+                        <button onclick="checkTBS()" class="px-4 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition">
+                            <i class="fa-solid fa-check-double mr-1"></i> Submit Simulation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Scenario Exhibit Box -->
+                    <div class="lg:col-span-5 bg-slate-50 rounded-xl p-5 border border-slate-200 text-sm space-y-3">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-folder-open text-amber-500"></i> Exhibit A: Year-End Audit Findings
+                        </h3>
+                        <p class="text-slate-600 leading-relaxed text-xs">
+                            You are reviewing the unadjusted trial balance for <strong>Apex Global Enterprises</strong> as of December 31, 2026. The following unrecorded items were discovered during year-end audit testing:
+                        </p>
+                        <ul class="list-disc list-inside text-xs text-slate-600 space-y-2 bg-white p-3 rounded-lg border border-slate-200 font-sans">
+                            <li><strong>Item 1:</strong> On Oct 1, Apex paid $12,000 for a 1-year insurance policy, fully debited to Prepaid Insurance. No entries were made since.</li>
+                            <li><strong>Item 2:</strong> Services performed for $4,500 in late December remain unbilled and unrecorded.</li>
+                            <li><strong>Item 3:</strong> Annual depreciation on office equipment is calculated at $6,200.</li>
+                        </ul>
+                        <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                            <i class="fa-solid fa-circle-info mr-1"></i> Complete the journal entry spreadsheet on the right. Ensure Total Debits equal Total Credits.
+                        </div>
+                    </div>
+
+                    <!-- Interactive Journal Entry Table -->
+                    <div class="lg:col-span-7 space-y-4">
+                        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <div class="bg-slate-900 text-white px-4 py-2.5 text-xs font-mono flex justify-between items-center">
+                                <span>GENERAL JOURNAL WORKBOOK</span>
+                                <span class="text-slate-400">Dec 31 Adjusting Entries</span>
+                            </div>
+                            <div class="p-4 overflow-x-auto">
+                                <table class="w-full text-xs text-left" id="tbs-table">
+                                    <thead>
+                                        <tr class="border-b border-slate-200 font-mono text-slate-500 uppercase">
+                                            <th class="pb-2">Account Description</th>
+                                            <th class="pb-2 w-28">Debit ($)</th>
+                                            <th class="pb-2 w-28">Credit ($)</th>
+                                            <th class="pb-2 w-10"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbs-rows" class="divide-y divide-slate-100">
+                                        <!-- Rows injected by JavaScript -->
+                                    </tbody>
+                                </table>
+                                <button onclick="addTBSRow()" class="mt-3 text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1">
+                                    <i class="fa-solid fa-plus-circle"></i> Add Entry Row
+                                </button>
+                            </div>
+
+                            <!-- Live Ledger Balance Check Footbar -->
+                            <div class="bg-slate-50 border-t border-slate-200 p-4 flex justify-between items-center text-xs font-mono">
+                                <div>
+                                    <span class="text-slate-500">Status: </span>
+                                    <span id="tbs-balance-status" class="font-bold text-slate-700">Checking Balance...</span>
+                                </div>
+                                <div class="flex gap-4">
+                                    <div>Debits: <span id="tbs-total-debit" class="font-bold text-slate-900">$0</span></div>
+                                    <div>Credits: <span id="tbs-total-credit" class="font-bold text-slate-900">$0</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tbs-feedback" class="hidden p-4 rounded-xl text-xs font-medium"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flashcard Concept Review View -->
+        <div id="view-flashcards" class="hidden space-y-6 fade-in">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">High-Yield CPA Concept Deck</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Master key formulas, standards, and definitions for high exam accuracy.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="flashcard-counter" class="text-xs font-mono bg-slate-200 text-slate-700 px-3 py-1 rounded-full font-bold">1 / 6</span>
+                </div>
+            </div>
+
+            <!-- Flashcard 3D Interactive Component -->
+            <div class="max-w-xl mx-auto py-8">
+                <div id="flashcard-element" class="flip-card w-full h-80 cursor-pointer" onclick="toggleFlashcardFlip()">
+                    <div class="flip-card-inner relative w-full h-full rounded-2xl shadow-lg border border-slate-200 bg-white">
+                        <!-- Front View -->
+                        <div class="flip-card-front absolute inset-0 rounded-2xl p-8 flex flex-col justify-between bg-gradient-to-br from-white to-slate-50">
+                            <div class="flex justify-between items-center">
+                                <span id="fc-category" class="text-xs font-bold font-mono text-sky-600 uppercase tracking-wider">FAR • ASC 606</span>
+                                <span class="text-xs text-slate-400 font-sans"><i class="fa-solid fa-rotate mr-1"></i> Click to Flip</span>
+                            </div>
+                            <div class="text-center my-auto">
+                                <h3 id="fc-front-text" class="text-xl font-bold text-slate-800 leading-snug">
+                                    What are the 5 Steps of the Revenue Recognition Model under ASC 606?
+                                </h3>
+                            </div>
+                            <div class="text-center text-xs text-slate-400 font-medium">
+                                Tap card to reveal answer
+                            </div>
+                        </div>
+
+                        <!-- Back View -->
+                        <div class="flip-card-back absolute inset-0 rounded-2xl p-8 flex flex-col justify-between bg-slate-900 text-white">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold font-mono text-sky-400 uppercase">Core Standard Solution</span>
+                                <span class="text-xs text-slate-400"><i class="fa-solid fa-check-circle text-emerald-400 mr-1"></i> Solution</span>
+                            </div>
+                            <div class="my-auto text-xs text-slate-200 leading-relaxed text-left space-y-2" id="fc-back-text">
+                                <ol class="list-decimal list-inside space-y-1 font-sans">
+                                    <li>Identify the contract with a customer.</li>
+                                    <li>Identify performance obligations.</li>
+                                    <li>Determine the transaction price.</li>
+                                    <li>Allocate transaction price to obligations.</li>
+                                    <li>Recognize revenue when/as obligations are satisfied.</li>
+                                </ol>
+                            </div>
+                            <div class="text-center text-[11px] text-slate-400">
+                                Click card to flip back
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deck Controls -->
+                <div class="flex items-center justify-between mt-6">
+                    <button onclick="prevFlashcard()" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs shadow-sm transition">
+                        <i class="fa-solid fa-arrow-left mr-1"></i> Previous
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="rateFlashcard(false)" class="px-4 py-2 bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-semibold rounded-lg text-xs transition">
+                            Need Practice
+                        </button>
+                        <button onclick="rateFlashcard(true)" class="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 font-semibold rounded-lg text-xs transition">
+                            Got It Mastered
+                        </button>
+                    </div>
+                    <button onclick="nextFlashcard()" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs shadow-sm transition">
+                        Next <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics & Diagnostic View Container -->
+        <div id="view-analytics" class="hidden space-y-6 fade-in">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Cognitive Diagnostics & Readiness Dashboard</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Real-time performance analytics based on accuracy and metacognition confidence.</p>
+                </div>
+                <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">
+                    Exam Readiness Index: 74%
+                </span>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                    <span class="text-xs font-medium text-slate-400 block mb-1">TOTAL QUESTIONS ATTEMPTED</span>
+                    <span id="stat-total-q" class="text-2xl font-bold font-mono text-slate-800">42</span>
+                    <span class="text-[11px] text-emerald-600 block mt-1"><i class="fa-solid fa-arrow-up"></i> +12 today</span>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                    <span class="text-xs font-medium text-slate-400 block mb-1">CPA EXAM ACCURACY</span>
+                    <span id="stat-accuracy" class="text-2xl font-bold font-mono text-sky-600">81%</span>
+                    <span class="text-[11px] text-slate-500 block mt-1">Passing threshold: 75%</span>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                    <span class="text-xs font-medium text-slate-400 block mb-1">CONFIDENCE CALIBRATION</span>
+                    <span class="text-2xl font-bold font-mono text-indigo-600">High</span>
+                    <span class="text-[11px] text-emerald-600 block mt-1">Low overconfidence bias</span>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                    <span class="text-xs font-medium text-slate-400 block mb-1">ESTIMATED STUDY TIME</span>
+                    <span class="text-2xl font-bold font-mono text-amber-600">14.5 hrs</span>
+                    <span class="text-[11px] text-slate-500 block mt-1">Target: 30 hrs/week</span>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Domain Mastery Radar / Bar Chart -->
+                <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 text-sm mb-4">Domain Proficiency Heatmap</h3>
+                    <div class="h-64 relative">
+                        <canvas id="masteryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Weakness Diagnostics & Study Recommendations -->
+                <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm mb-3">Adaptive Learning Insights</h3>
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                                <h4 class="font-bold text-red-800">Priority Focus Area: ASC 842 Lease Accounting</h4>
+                                <p class="text-red-700 mt-0.5">You experienced remediation loops on operating vs. finance lease criteria. Recommend 2 Task-Based Simulations.</p>
+                            </div>
+                            <div class="p-3 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-lg">
+                                <h4 class="font-bold text-emerald-800">Mastered Domain: The Accounting Cycle</h4>
+                                <p class="text-emerald-700 mt-0.5">High speed and 95% accuracy on adjusting journal entries. Engine auto-advanced to Advanced Consolidations.</p>
+                            </div>
+                            <div class="p-3 bg-sky-50 border-l-4 border-sky-500 rounded-r-lg">
+                                <h4 class="font-bold text-sky-800">CPA Evolution Tip</h4>
+                                <p class="text-sky-700 mt-0.5">Focus heavily on Data Analytics and Technology controls integrated within the AUD & FAR sections.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="switchView('adaptive')" class="mt-4 w-full py-2 bg-slate-900 text-white rounded-lg font-semibold text-xs hover:bg-slate-800 transition">
+                        Return to Adaptive Learning Path
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ==========================================
+        // 1. GLOBAL CURRICULUM DATASET (FAR, AUD, REG)
+        // ==========================================
+        const courseData = {
+            FAR: {
+                title: "FAR: Financial Accounting & Reporting",
+                weeks: [
+                    { id: "w1", title: "Week 1: Accounting Cycle & Accrual Engine", nodeCount: 3, status: "in-progress" },
+                    { id: "w2", title: "Week 2: Financial Statements & Cash Flows", nodeCount: 3, status: "locked" },
+                    { id: "w3", title: "Week 3: Revenue Recognition (ASC 606)", nodeCount: 3, status: "locked" },
+                    { id: "w4", title: "Week 4: Inventory & Property, Plant, Equipment", nodeCount: 3, status: "locked" },
+                    { id: "w5", title: "Week 5: Liabilities, Bonds & Leases (ASC 842)", nodeCount: 3, status: "locked" },
+                    { id: "w6", title: "Week 6: Stockholders' Equity & Earnings Per Share", nodeCount: 3, status: "locked" },
+                    { id: "w7", title: "Week 7: Consolidations & Non-Profit Accounting", nodeCount: 3, status: "locked" }
+                ],
+                nodes: {
+                    "q1": {
+                        week: "w1",
+                        concept: "The Accounting Equation & Double Entry",
+                        type: "question",
+                        scenario: "A business takes out a $10,000 bank loan to purchase $10,000 worth of office equipment.",
+                        question: "How does this single transaction impact the fundamental accounting equation (Assets = Liabilities + Equity)?",
+                        options: [
+                            { text: "Assets increase by $10,000, and Liabilities increase by $10,000.", isCorrect: true },
+                            { text: "Assets increase by $10,000, and Equity increases by $10,000.", isCorrect: false },
+                            { text: "Assets decrease by $10,000, and Liabilities increase by $10,000.", isCorrect: false },
+                            { text: "Assets remain unchanged, and Equity increases by $10,000.", isCorrect: false }
+                        ],
+                        explanation: "Correct! Buying equipment (Asset) increases assets by $10,000, but taking out a loan (Liability) increases liabilities by $10,000. Both sides remain balanced at +$10,000.",
+                        nextCorrect: "q2",
+                        nextIncorrect: "rem1"
+                    },
+                    "rem1": {
+                        week: "w1",
+                        concept: "Accounting Equation Mechanics Breakdown",
+                        type: "remediation",
+                        title: "Deconstructing Assets = Liabilities + Equity",
+                        text: "Let's isolate the balance sheet components:<br><br><b>1. Assets:</b> What the company owns (Cash, Equipment, Receivables).<br><b>2. Liabilities:</b> What the company owes to external third parties (Loans, Accounts Payable).<br><b>3. Equity:</b> The leftover claims belonging to owners.<br><br>When you obtain an asset via debt, both your total resources (Assets) and total obligations (Liabilities) expand by the exact same dollar amount.",
+                        hasInteractiveTool: true,
+                        toolType: "equation_balancer",
+                        next: "q1_easy"
+                    },
+                    "q1_easy": {
+                        week: "w1",
+                        concept: "Accounting Equation (Scaffolded Review)",
+                        type: "question",
+                        scenario: "The owner contributes $5,000 of personal cash into the business checking account.",
+                        question: "How does this owner equity investment affect the balance sheet?",
+                        options: [
+                            { text: "Assets increase by $5,000; Equity increases by $5,000.", isCorrect: true },
+                            { text: "Assets increase by $5,000; Liabilities increase by $5,000.", isCorrect: false }
+                        ],
+                        explanation: "Spot on! Cash (Asset) goes up by $5,000, and since it came directly from the owner, Equity increases by $5,000.",
+                        nextCorrect: "q2",
+                        nextIncorrect: "q2"
+                    },
+                    "q2": {
+                        week: "w1",
+                        concept: "Accrual Accounting vs. Cash Basis",
+                        type: "question",
+                        scenario: "Apex Corp delivers $8,000 worth of consulting services in December 2026. The client is billed with payment terms Net-30, and cash is received in January 2027.",
+                        question: "Under US GAAP (Accrual Accounting), in which period must the $8,000 revenue be recognized?",
+                        options: [
+                            { text: "In January 2027, when cash is received in the bank.", isCorrect: false },
+                            { text: "In December 2026, when the service performance obligation was satisfied.", isCorrect: true },
+                            { text: "Deferred until 2027 annual report filing.", isCorrect: false },
+                            { text: "Split 50% in December 2026 and 50% in January 2027.", isCorrect: false }
+                        ],
+                        explanation: "Perfect! Under the ASC 606 Revenue Recognition principle, revenue is recognized when the performance obligation is satisfied (earned), regardless of when cash is collected.",
+                        nextCorrect: "q3",
+                        nextIncorrect: "rem2"
+                    },
+                    "rem2": {
+                        week: "w1",
+                        concept: "The Accrual Principle & Matching Rule",
+                        type: "remediation",
+                        title: "Why Accrual Accounting Controls GAAP",
+                        text: "Cash basis accounting only looks at bank accounts. But cash timing can easily distort true company profitability! GAAP requires <b>Accrual Basis</b>:<br>• <b>Revenue</b> is recorded when earned (work done).<br>• <b>Expenses</b> are matched in the exact period they help generate that revenue.<br>If you do work now and get paid later, you create an <b>Accounts Receivable</b> asset immediately.",
+                        hasInteractiveTool: false,
+                        next: "q3"
+                    },
+                    "q3": {
+                        week: "w1",
+                        concept: "Adjusting Journal Entries & Deferrals",
+                        type: "question",
+                        scenario: "On October 1, Apex pays $12,000 cash for a 12-month business insurance policy ($1,000/mo) and records it initially as Prepaid Insurance.",
+                        question: "What adjusting entry is required on December 31 at year-end?",
+                        options: [
+                            { text: "Debit Insurance Expense $3,000; Credit Prepaid Insurance $3,000", isCorrect: true },
+                            { text: "Debit Insurance Expense $12,000; Credit Prepaid Insurance $12,000", isCorrect: false },
+                            { text: "Debit Prepaid Insurance $3,000; Credit Cash $3,000", isCorrect: false },
+                            { text: "No entry required until the policy expires next September.", isCorrect: false }
+                        ],
+                        explanation: "Excellent calculation! 3 months (Oct, Nov, Dec) have elapsed ($1,000 x 3 = $3,000). You convert $3,000 of the Prepaid Asset into an Insurance Expense.",
+                        nextCorrect: "finish_w1",
+                        nextIncorrect: "rem3"
+                    },
+                    "rem3": {
+                        week: "w1",
+                        concept: "Prepaid Asset Consumption Visualizer",
+                        type: "remediation",
+                        title: "Calculating Time Elapsed Deferrals",
+                        text: "Prepaid Insurance is an Asset because it represents future protection paid in advance. As time passes, that asset is 'used up' and turns into an Expense.<br><br><b>Calculation Breakdown:</b><br>$12,000 ÷ 12 months = $1,000 per month.<br>Months passed from Oct 1 to Dec 31 = 3 months.<br>Expense = 3 x $1,000 = <b>$3,000</b>.",
+                        hasInteractiveTool: true,
+                        toolType: "t_account_visualizer",
+                        next: "finish_w1"
+                    },
+                    "finish_w1": {
+                        week: "w1",
+                        concept: "Week 1 Mastered",
+                        type: "end",
+                        title: "🎉 Week 1 Accounting Cycle Mastered!",
+                        text: "Congratulations! You have demonstrated strong cognitive mastery over the Accounting Equation, Accrual Principles, and Deferral Adjusting Entries. You are now ready for Financial Statement Presentation or Task-Based Simulations."
+                    }
+                }
+            },
+            AUD: {
+                title: "AUD: Auditing & Attestation",
+                weeks: [
+                    { id: "w1_aud", title: "Week 1: Ethics, Professional Responsibilities & COSO", nodeCount: 1, status: "in-progress" }
+                ],
+                nodes: {
+                    "q1_aud": {
+                        week: "w1_aud",
+                        concept: "COSO Internal Control Framework",
+                        type: "question",
+                        scenario: "An auditor is evaluating an entity's internal control system using the COSO framework.",
+                        question: "Which component of the COSO internal control integrated framework serves as the foundation for all other components by setting the tone at the top?",
+                        options: [
+                            { text: "Control Environment", isCorrect: true },
+                            { text: "Risk Assessment", isCorrect: false },
+                            { text: "Control Activities", isCorrect: false },
+                            { text: "Information and Communication", isCorrect: false }
+                        ],
+                        explanation: "Correct! The Control Environment sets the tone of an organization, influencing the control consciousness of its people (the 'Tone at the Top').",
+                        nextCorrect: "finish_aud",
+                        nextIncorrect: "finish_aud"
+                    },
+                    "finish_aud": {
+                        week: "w1_aud",
+                        concept: "AUD Core Ready",
+                        type: "end",
+                        title: "Auditing Core Concept Verified!",
+                        text: "You have verified foundational knowledge in COSO framework components!"
+                    }
+                }
+            },
+            REG: {
+                title: "REG: Tax & Business Law",
+                weeks: [
+                    { id: "w1_reg", title: "Week 1: Individual Income Taxation & Gross Income", nodeCount: 1, status: "in-progress" }
+                ],
+                nodes: {
+                    "q1_reg": {
+                        week: "w1_reg",
+                        concept: "Gross Income Inclusion/Exclusion",
+                        type: "question",
+                        scenario: "A taxpayer receives a $5,000 gift from a parent and $2,000 in municipal bond interest income.",
+                        question: "How much of these receipts should be included in Gross Income on the federal tax return?",
+                        options: [
+                            { text: "$0 (Both gifts and municipal bond interest are generally excluded)", isCorrect: true },
+                            { text: "$5,000", isCorrect: false },
+                            { text: "$2,000", isCorrect: false },
+                            { text: "$7,000", isCorrect: false }
+                        ],
+                        explanation: "Correct! Under IRC § 102, gifts are excluded from gross income. Under IRC § 103, municipal bond interest from state/local bonds is also tax-exempt.",
+                        nextCorrect: "finish_reg",
+                        nextIncorrect: "finish_reg"
+                    },
+                    "finish_reg": {
+                        week: "w1_reg",
+                        concept: "REG Core Ready",
+                        type: "end",
+                        title: "REG Core Concept Verified!",
+                        text: "Great job! You navigated statutory exclusions from federal gross income."
+                    }
+                }
+            }
+        };
+
+        // Flashcards Dataset
+        const flashcardsData = [
+            {
+                cat: "FAR • ASC 606",
+                front: "What are the 5 Steps of Revenue Recognition under ASC 606?",
+                back: "<ol class='list-decimal list-inside space-y-1 font-sans'><li>Identify Contract with Customer.</li><li>Identify Performance Obligations.</li><li>Determine Transaction Price.</li><li>Allocate Price to Obligations.</li><li>Recognize Revenue when/as satisfied.</li></ol>"
+            },
+            {
+                cat: "FAR • ASC 842 LEASES",
+                front: "What are the 5 criteria to classify a lease as a Finance Lease for a Lessee?",
+                back: "<ul class='list-disc list-inside space-y-1 font-sans'><li>Transfer of Ownership.</li><li>Purchase Option reasonably certain to be exercised.</li><li>Lease Term is major part of economic life (≥75%).</li><li>Present Value of payments ≥ substantially all fair value (≥90%).</li><li>Specialized Asset with no alternative use.</li></ul>"
+            },
+            {
+                cat: "AUD • COSO FRAMEWORK",
+                front: "What are the 5 Components of the COSO Internal Control Framework? (Mnemonic: CRIME)",
+                back: "<ul class='list-disc list-inside space-y-1 font-sans'><li><b>C</b>ontrol Environment</li><li><b>R</b>isk Assessment</li><li><b>I</b>nformation & Communication</li><li><b>M</b>onitoring Activities</li><li><b>E</b>xisting Control Activities</li></ul>"
+            },
+            {
+                cat: "REG • TAX LAW",
+                front: "What is the key difference between Tax Credits vs. Tax Deductions?",
+                back: "<p class='font-sans leading-relaxed'><b>Tax Deductions</b> reduce total Taxable Income (value depends on marginal tax bracket).<br><br><b>Tax Credits</b> provide a direct dollar-for-dollar reduction of the actual tax liability calculated.</p>"
+            }
+        ];
+
+        // Application State
+        let currentTrack = 'FAR';
+        let currentNodeId = 'q1';
+        let currentView = 'adaptive';
+        let selectedConfidence = 'medium';
+        let currentFlashcardIdx = 0;
+        let isAudioMuted = false;
+        let stats = {
+            streak: 4,
+            mastery: 68,
+            totalAttempted: 14,
+            correctCount: 11
+        };
+
+        // Web Audio API Synthesizer for Interactive Audio Feedback
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (isAudioMuted) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.15); // E5
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'incorrect') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                    osc.frequency.exponentialRampToValueAtTime(146.83, audioCtx.currentTime + 0.2); // D3
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'click') {
+                    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.05);
+                }
+            } catch(e) { console.log(e); }
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            document.getElementById('audio-icon').className = isAudioMuted ? "fa-solid fa-volume-xmark text-slate-500" : "fa-solid fa-volume-high text-slate-300";
+        }
+
+        // View Switcher Function
+        function switchView(viewName) {
+            playSound('click');
+            currentView = viewName;
+            
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.className = "nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100";
+            });
+            document.getElementById(`tab-${viewName}`).className = "nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-sky-50 text-sky-700 border border-sky-200";
+
+            document.getElementById('view-adaptive').classList.add('hidden');
+            document.getElementById('view-simulation').classList.add('hidden');
+            document.getElementById('view-flashcards').classList.add('hidden');
+            document.getElementById('view-analytics').classList.add('hidden');
+
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+
+            if (viewName === 'analytics') {
+                renderAnalyticsChart();
+            } else if (viewName === 'simulation') {
+                initTBS();
+            }
+        }
+
+        function switchExamTrack(track) {
+            playSound('click');
+            currentTrack = track;
+            
+            document.querySelectorAll('.track-btn').forEach(btn => {
+                btn.className = "track-btn px-3 py-1.5 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white";
+            });
+            document.getElementById(`track-btn-${track}`).className = "track-btn px-3 py-1.5 rounded-md text-xs font-semibold transition bg-sky-600 text-white shadow";
+
+            document.getElementById('syllabus-subhead').innerText = courseData[track].title;
+            
+            // Get first node of new track
+            const trackNodes = courseData[track].nodes;
+            currentNodeId = Object.keys(trackNodes)[0];
+            
+            renderSyllabus();
+            renderNode(currentNodeId);
+        }
+
+        function renderSyllabus() {
+            const list = document.getElementById('syllabus-list');
+            list.innerHTML = '';
+            
+            const weeks = courseData[currentTrack].weeks;
+            weeks.forEach((w, idx) => {
+                const isActive = idx === 0;
+                const div = document.createElement('div');
+                div.className = `p-3.5 flex items-center justify-between transition cursor-pointer ${isActive ? 'bg-sky-50/80 border-l-4 border-sky-600' : 'hover:bg-slate-50'}`;
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full ${isActive ? 'bg-sky-600 text-white' : 'bg-slate-200 text-slate-600'} flex items-center justify-center font-bold text-xs">
+                            ${idx + 1}
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800 leading-tight">${w.title}</h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${w.nodeCount} Adaptive Modules</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid ${isActive ? 'fa-circle-play text-sky-600' : 'fa-lock text-slate-300'} text-sm"></i>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function renderNode(nodeId) {
+            const node = courseData[currentTrack].nodes[nodeId];
+            if (!node) return;
+
+            const body = document.getElementById('adaptive-body');
+            const drawer = document.getElementById('feedback-drawer');
+            drawer.classList.add('hidden');
+            body.innerHTML = '';
+
+            // Update Header Tags
+            document.getElementById('node-type-badge').innerText = node.type.toUpperCase() + " NODE";
+            document.getElementById('node-type-badge').className = node.type === 'question' ? 
+                "bg-sky-100 text-sky-800 text-xs px-2.5 py-1 rounded-full font-bold" : 
+                "bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold";
+            document.getElementById('current-concept-tag').innerText = node.concept;
+
+            if (node.type === "question") {
+                body.innerHTML = `
+                    <div class="fade-in space-y-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-[11px] font-bold font-mono text-sky-600 uppercase tracking-wider block mb-1">CPA Exam Scenario</span>
+                            <p class="text-sm font-medium text-slate-800 leading-relaxed">${node.scenario}</p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 mb-3">${node.question}</h3>
+                            <div class="space-y-2.5" id="options-container">
+                                ${node.options.map((opt, i) => `
+                                    <button onclick="handleAnswer(${i}, '${nodeId}')" class="option-btn w-full text-left p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 bg-white transition flex items-center justify-between group shadow-sm">
+                                        <span class="text-xs font-medium text-slate-700 group-hover:text-sky-900">${opt.text}</span>
+                                        <i class="fa-regular fa-circle text-slate-300 group-hover:text-sky-500 text-sm"></i>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metacognition Confidence Meter -->
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span class="text-slate-500 font-medium">Confidence Calibration before selecting:</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="setConfidence('low')" id="conf-low" class="px-2.5 py-1 rounded text-[11px] border border-slate-200 font-medium text-slate-600 hover:bg-slate-100">Low</button>
+                            <button onclick="setConfidence('medium')" id="conf-medium" class="px-2.5 py-1 rounded text-[11px] bg-sky-100 text-sky-800 font-bold border border-sky-300">Medium</button>
+                            <button onclick="setConfidence('high')" id="conf-high" class="px-2.5 py-1 rounded text-[11px] border border-slate-200 font-medium text-slate-600 hover:bg-slate-100">High</button>
+                        </div>
+                    </div>
+                `;
+            } else if (node.type === "remediation") {
+                body.innerHTML = `
+                    <div class="fade-in space-y-4">
+                        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl">
+                            <div class="flex items-center gap-2 text-amber-800 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-lightbulb"></i>
+                                <h3>Adaptive Principle Breakdown: ${node.title}</h3>
+                            </div>
+                            <div class="text-xs text-slate-700 leading-relaxed mt-2">${node.text}</div>
+                        </div>
+
+                        ${node.hasInteractiveTool ? getInteractiveToolHTML(node.toolType) : ''}
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex justify-end">
+                        <button onclick="renderNode('${node.next}')" class="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 shadow transition flex items-center gap-2">
+                            <span>Proceed to Practical Application</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
+            } else if (node.type === "end") {
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                body.innerHTML = `
+                    <div class="fade-in text-center py-10 space-y-4 my-auto">
+                        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900">${node.title}</h2>
+                        <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">${node.text}</p>
+                        <div class="pt-4 flex justify-center gap-3">
+                            <button onclick="switchView('simulation')" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 shadow transition">
+                                Launch Task Simulation (TBS)
+                            </button>
+                            <button onclick="switchExamTrack('FAR')" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition">
+                                Restart Core Track
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function setConfidence(level) {
+            playSound('click');
+            selectedConfidence = level;
+            ['low', 'medium', 'high'].forEach(l => {
+                const btn = document.getElementById(`conf-${l}`);
+                if (btn) btn.className = l === level ? "px-2.5 py-1 rounded text-[11px] bg-sky-100 text-sky-800 font-bold border border-sky-300" : "px-2.5 py-1 rounded text-[11px] border border-slate-200 font-medium text-slate-600 hover:bg-slate-100";
+            });
+        }
+
+        function getInteractiveToolHTML(toolType) {
+            if (toolType === "equation_balancer") {
+                return `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                        <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-scale-balanced text-sky-600"></i> Interactive Accounting Equation Balancer
+                        </h4>
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono font-bold">
+                            <div class="p-2 bg-sky-50 text-sky-800 rounded border border-sky-200">
+                                <div>ASSETS</div>
+                                <div id="eq-assets" class="text-sm mt-1">$10,000</div>
+                            </div>
+                            <div class="p-2 bg-amber-50 text-amber-800 rounded border border-amber-200">
+                                <div>LIABILITIES</div>
+                                <div id="eq-liab" class="text-sm mt-1">$10,000</div>
+                            </div>
+                            <div class="p-2 bg-emerald-50 text-emerald-800 rounded border border-emerald-200">
+                                <div>EQUITY</div>
+                                <div id="eq-equity" class="text-sm mt-1">$0</div>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-500 italic text-center">Notice how both sides maintain absolute numerical equilibrium ($10,000 = $10,000 + $0).</p>
+                    </div>
+                `;
+            } else if (toolType === "t_account_visualizer") {
+                return `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                        <h4 class="text-xs font-bold text-slate-800">Visual T-Account Ledger Breakdown</h4>
+                        <div class="grid grid-cols-2 gap-4 text-xs font-mono">
+                            <div class="border border-slate-300 rounded overflow-hidden">
+                                <div class="bg-slate-800 text-white text-center py-1 font-bold">Insurance Expense (Debit)</div>
+                                <div class="p-2 text-emerald-600 font-bold text-center">+ $3,000 (Expensed)</div>
+                            </div>
+                            <div class="border border-slate-300 rounded overflow-hidden">
+                                <div class="bg-slate-800 text-white text-center py-1 font-bold">Prepaid Insurance (Credit)</div>
+                                <div class="p-2 text-red-600 font-bold text-center">- $3,000 (Reduced)</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
+        function handleAnswer(selectedIndex, nodeId) {
+            const node = courseData[currentTrack].nodes[nodeId];
+            const opt = node.options[selectedIndex];
+            const drawer = document.getElementById('feedback-drawer');
+            const drawerContent = document.getElementById('feedback-content');
+
+            stats.totalAttempted++;
+            if (opt.isCorrect) stats.correctCount++;
+            stats.mastery = Math.round((stats.correctCount / stats.totalAttempted) * 100);
+            
+            document.getElementById('stat-mastery').innerText = stats.mastery + "%";
+            document.getElementById('stat-total-q').innerText = stats.totalAttempted;
+            document.getElementById('stat-accuracy').innerText = stats.mastery + "%";
+
+            // Disable option buttons
+            document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+
+            drawer.classList.remove('hidden');
+
+            if (opt.isCorrect) {
+                playSound('correct');
+                drawer.className = "border-t border-emerald-200 bg-emerald-50/90 p-5 slide-up";
+                drawerContent.innerHTML = `
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                                <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+                                <h3>Correct Concept Mastered!</h3>
+                            </div>
+                            <p class="text-xs text-emerald-900 mt-1 leading-relaxed">${node.explanation}</p>
+                        </div>
+                        <button onclick="renderNode('${node.nextCorrect}')" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow transition whitespace-nowrap">
+                            Next Module <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                playSound('incorrect');
+                drawer.className = "border-t border-amber-200 bg-amber-50/90 p-5 slide-up";
+                drawerContent.innerHTML = `
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                                <i class="fa-solid fa-circle-xmark text-amber-600 text-lg"></i>
+                                <h3>Incorrect - Dynamic Adaptive Adjustment Triggered</h3>
+                            </div>
+                            <p class="text-xs text-amber-900 mt-1 leading-relaxed">
+                                Don't worry! CPA concepts take practice. The engine is now routing you to a targeted principle breakdown to reinforce this foundational concept.
+                            </p>
+                        </div>
+                        <button onclick="renderNode('${node.nextIncorrect}')" class="px-5 py-2.5 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-xl shadow transition whitespace-nowrap">
+                            Review Principle Breakdown <i class="fa-solid fa-wrench ml-1"></i>
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Task-Based Simulation (TBS) Engine Logic
+        let tbsRows = [
+            { account: "Insurance Expense", debit: "3000", credit: "" },
+            { account: "Prepaid Insurance", debit: "", credit: "3000" }
+        ];
+
+        const accountOptions = [
+            "-- Select Account --",
+            "Insurance Expense",
+            "Prepaid Insurance",
+            "Accounts Receivable",
+            "Service Revenue",
+            "Depreciation Expense",
+            "Accumulated Depreciation",
+            "Cash",
+            "Accounts Payable"
+        ];
+
+        function initTBS() {
+            renderTBSRows();
+        }
+
+        function renderTBSRows() {
+            const tbody = document.getElementById('tbs-rows');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            tbsRows.forEach((row, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2 pr-2">
+                        <select onchange="updateTBSRow(${i}, 'account', this.value)" class="w-full text-xs p-1.5 rounded border border-slate-300 font-sans">
+                            ${accountOptions.map(acc => `<option value="${acc}" ${acc === row.account ? 'selected' : ''}>${acc}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="py-2 pr-2">
+                        <input type="number" value="${row.debit}" oninput="updateTBSRow(${i}, 'debit', this.value)" placeholder="0" class="w-full text-xs p-1.5 rounded border border-slate-300 font-mono text-right">
+                    </td>
+                    <td class="py-2 pr-2">
+                        <input type="number" value="${row.credit}" oninput="updateTBSRow(${i}, 'credit', this.value)" placeholder="0" class="w-full text-xs p-1.5 rounded border border-slate-300 font-mono text-right">
+                    </td>
+                    <td class="py-2 text-center">
+                        <button onclick="removeTBSRow(${i})" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            calculateTBSBalance();
+        }
+
+        function addTBSRow() {
+            playSound('click');
+            tbsRows.push({ account: "-- Select Account --", debit: "", credit: "" });
+            renderTBSRows();
+        }
+
+        function removeTBSRow(index) {
+            playSound('click');
+            if (tbsRows.length > 1) {
+                tbsRows.splice(index, 1);
+                renderTBSRows();
+            }
+        }
+
+        function updateTBSRow(index, field, value) {
+            tbsRows[index][field] = value;
+            calculateTBSBalance();
+        }
+
+        function calculateTBSBalance() {
+            let totalDebits = 0;
+            let totalCredits = 0;
+
+            tbsRows.forEach(r => {
+                totalDebits += parseFloat(r.debit) || 0;
+                totalCredits += parseFloat(r.credit) || 0;
+            });
+
+            document.getElementById('tbs-total-debit').innerText = "$" + totalDebits.toLocaleString();
+            document.getElementById('tbs-total-credit').innerText = "$" + totalCredits.toLocaleString();
+
+            const status = document.getElementById('tbs-balance-status');
+            if (totalDebits > 0 && totalDebits === totalCredits) {
+                status.innerText = "BALANCED";
+                status.className = "font-bold text-emerald-600";
+            } else {
+                status.innerText = "OUT OF BALANCE";
+                status.className = "font-bold text-red-500";
+            }
+        }
+
+        function resetTBS() {
+            playSound('click');
+            tbsRows = [
+                { account: "-- Select Account --", debit: "", credit: "" }
+            ];
+            document.getElementById('tbs-feedback').className = "hidden";
+            renderTBSRows();
+        }
+
+        function checkTBS() {
+            const feedback = document.getElementById('tbs-feedback');
+            feedback.classList.remove('hidden');
+
+            let totalDebits = 0;
+            let totalCredits = 0;
+            tbsRows.forEach(r => {
+                totalDebits += parseFloat(r.debit) || 0;
+                totalCredits += parseFloat(r.credit) || 0;
+            });
+
+            if (totalDebits === 13700 && totalCredits === 13700) {
+                playSound('correct');
+                feedback.className = "p-4 rounded-xl text-xs font-medium bg-emerald-100 text-emerald-900 border border-emerald-300 fade-in";
+                feedback.innerHTML = `
+                    <div class="font-bold flex items-center gap-1.5 text-sm mb-1">
+                        <i class="fa-solid fa-award text-emerald-600"></i> Simulation Passed with 100% Accuracy!
+                    </div>
+                    You correctly calculated and recorded all three year-end adjusting journal entries (Insurance $3,000, Revenue Accrual $4,500, Depreciation $6,200).
+                `;
+            } else {
+                playSound('incorrect');
+                feedback.className = "p-4 rounded-xl text-xs font-medium bg-amber-100 text-amber-900 border border-amber-300 fade-in";
+                feedback.innerHTML = `
+                    <div class="font-bold flex items-center gap-1.5 text-sm mb-1">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Entries Require Adjustment
+                    </div>
+                    Ensure you include all 3 items from Exhibit A:
+                    <br>• Item 1: Expensed Insurance = $3,000
+                    <br>• Item 2: Unbilled Revenue = $4,500
+                    <br>• Item 3: Depreciation = $6,200
+                    <br>Total Debit/Credit sum must equal <strong>$13,700</strong>.
+                `;
+            }
+        }
+
+        // Flashcard Functionality
+        function renderFlashcard() {
+            const fc = flashcardsData[currentFlashcardIdx];
+            document.getElementById('fc-category').innerText = fc.cat;
+            document.getElementById('fc-front-text').innerText = fc.front;
+            document.getElementById('fc-back-text').innerHTML = fc.back;
+            document.getElementById('flashcard-counter').innerText = `${currentFlashcardIdx + 1} / ${flashcardsData.length}`;
+            
+            const cardEl = document.getElementById('flashcard-element');
+            cardEl.classList.remove('flipped');
+        }
+
+        function toggleFlashcardFlip() {
+            playSound('click');
+            document.getElementById('flashcard-element').classList.toggle('flipped');
+        }
+
+        function nextFlashcard() {
+            playSound('click');
+            currentFlashcardIdx = (currentFlashcardIdx + 1) % flashcardsData.length;
+            renderFlashcard();
+        }
+
+        function prevFlashcard() {
+            playSound('click');
+            currentFlashcardIdx = (currentFlashcardIdx - 1 + flashcardsData.length) % flashcardsData.length;
+            renderFlashcard();
+        }
+
+        function rateFlashcard(mastered) {
+            playSound(mastered ? 'correct' : 'incorrect');
+            nextFlashcard();
+        }
+
+        // Chart.js Rendering for Analytics Dashboard
+        let masteryChartInstance = null;
+        function renderAnalyticsChart() {
+            const ctx = document.getElementById('masteryChart');
+            if (!ctx) return;
+
+            if (masteryChartInstance) {
+                masteryChartInstance.destroy();
+            }
+
+            masteryChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Accounting Cycle', 'Financial Prep', 'ASC 606 Rev Rec', 'Inventory & PPE', 'ASC 842 Leases', 'Consolidations'],
+                    datasets: [{
+                        label: 'Proficiency Score (%)',
+                        data: [95, 82, 70, 65, 48, 55],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.85)',
+                            'rgba(16, 185, 129, 0.85)',
+                            'rgba(2, 132, 199, 0.85)',
+                            'rgba(2, 132, 199, 0.85)',
+                            'rgba(239, 68, 68, 0.85)',
+                            'rgba(245, 158, 11, 0.85)'
+                        ],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: v => v + '%' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Application Initialization
+        window.onload = function() {
+            renderSyllabus();
+            renderNode(currentNodeId);
+            renderFlashcard();
+        };
+    </script>
+</body>
+</html>
