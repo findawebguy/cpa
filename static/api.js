@@ -156,7 +156,7 @@ class CPAApiClient {
 
     // Flashcards API
     async getFlashcards(domain = "FAR") {
-        return await.request(`/flashcards?domain=${domain}`);
+        return await this.request(`/flashcards?domain=${domain}`);
     }
 
     async rateFlashcard(cardId, rating) {
