@@ -46,16 +46,44 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
         raise HTTPException(status_code=404, detail="Course track not found")
 
     syllabi = db.query(Syllabus).filter(Syllabus.course_id == course.id).order_by(Syllabus.week_number).all()
+    
+    # Get all nodes user has attempted
+    user_progress_nodes = db.query(UserProgress.node_id).filter(UserProgress.user_id == current_user.id).all()
+    attempted_node_ids = {p.node_id for p in user_progress_nodes}
+
     res = []
+    max_unlocked_week = 1
+
+    # Calculate progression level
     for idx, s in enumerate(syllabi):
-        node_count = db.query(LearningNode).filter(LearningNode.syllabus_id == s.id).count()
-        status = "in-progress" if idx == 0 else "locked"
+        nodes = db.query(LearningNode).filter(LearningNode.syllabus_id == s.id).order_by(LearningNode.id).all()
+        node_count = len(nodes)
+        first_node_key = nodes[0].node_key if nodes else None
+
+        # Check if user has answered any node in this week
+        has_attempted = any(n.id in attempted_node_ids for n in nodes)
+        if has_attempted:
+            max_unlocked_week = max(max_unlocked_week, s.week_number + 1)
+
+    for s in syllabi:
+        nodes = db.query(LearningNode).filter(LearningNode.syllabus_id == s.id).order_by(LearningNode.id).all()
+        node_count = len(nodes)
+        first_node_key = nodes[0].node_key if nodes else None
+
+        # Week 1 is always unlocked; subsequent weeks unlock if user has progressed or reached week threshold
+        if s.week_number <= max_unlocked_week:
+            status_str = "in-progress" if s.week_number == 1 else "unlocked"
+        else:
+            # Allow access to all weeks with nodes
+            status_str = "unlocked"
+
         res.append(SyllabusWeekResponse(
             id=s.id,
             week_number=s.week_number,
             title=s.title,
             node_count=node_count,
-            status=status
+            status=status_str,
+            start_node_key=first_node_key
         ))
     return res
 

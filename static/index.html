@@ -598,21 +598,30 @@
                 document.getElementById('syllabus-weeks-badge').innerText = `${syllabusWeeks.length} Weeks`;
                 list.innerHTML = '';
                 
-                syllabusWeeks.forEach((w, idx) => {
-                    const isActive = idx === 0;
+                syllabusWeeks.forEach((w) => {
+                    const isCurrentNodeWeek = currentNodeId.includes(`w${w.week_number}`) || (w.week_number === 1 && (currentNodeId === 'q1' || currentNodeId === 'q2' || currentNodeId === 'q3'));
                     const div = document.createElement('div');
-                    div.className = `p-3.5 flex items-center justify-between transition cursor-pointer ${isActive ? 'bg-sky-50/80 border-l-4 border-sky-600' : 'hover:bg-slate-50'}`;
+                    div.className = `p-3.5 flex items-center justify-between transition cursor-pointer ${isCurrentNodeWeek ? 'bg-sky-50/80 border-l-4 border-sky-600' : 'hover:bg-slate-50'}`;
+                    
+                    if (w.start_node_key) {
+                        div.onclick = () => {
+                            playSound('click');
+                            switchView('adaptive');
+                            renderNode(w.start_node_key);
+                        };
+                    }
+
                     div.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-full ${isActive ? 'bg-sky-600 text-white' : 'bg-slate-200 text-slate-600'} flex items-center justify-center font-bold text-xs">
+                            <div class="w-7 h-7 rounded-full ${isCurrentNodeWeek ? 'bg-sky-600 text-white' : 'bg-emerald-100 text-emerald-800 font-bold'} flex items-center justify-center font-bold text-xs">
                                 ${w.week_number}
                             </div>
                             <div>
                                 <h3 class="text-xs font-bold text-slate-800 leading-tight">${w.title}</h3>
-                                <p class="text-[10px] text-slate-400 mt-0.5">${w.node_count} Adaptive Modules</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">${w.node_count} Adaptive Modules</p>
                             </div>
                         </div>
-                        <i class="fa-solid ${isActive ? 'fa-circle-play text-sky-600' : 'fa-lock text-slate-300'} text-sm"></i>
+                        <i class="fa-solid ${isCurrentNodeWeek ? 'fa-circle-play text-sky-600' : 'fa-circle-check text-emerald-500'} text-sm"></i>
                     `;
                     list.appendChild(div);
                 });
@@ -690,6 +699,14 @@
                     `;
                 } else if (node.node_type === "end") {
                     confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                    
+                    const nextWeekMap = {
+                        "finish_w1": "far_w2_q1",
+                        "finish_aud": "aud_w2_q1",
+                        "finish_reg": "reg_w2_q1"
+                    };
+                    const nextWeekNode = nextWeekMap[nodeId] || "far_w2_q1";
+
                     body.innerHTML = `
                         <div class="fade-in text-center py-10 space-y-4 my-auto">
                             <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
@@ -698,16 +715,19 @@
                             <h2 class="text-2xl font-bold text-slate-900">${node.concept_name}</h2>
                             <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">${node.remediation_html || node.scenario_content || ''}</p>
                             <div class="pt-4 flex justify-center gap-3">
+                                <button onclick="renderNode('${nextWeekNode}')" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                                    <span>Proceed to Week 2 Modules</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
                                 <button onclick="switchView('simulation')" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 shadow transition">
                                     Launch Task Simulation (TBS)
-                                </button>
-                                <button onclick="switchExamTrack('FAR')" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition">
-                                    Restart Core Track
                                 </button>
                             </div>
                         </div>
                     `;
                 }
+                
+                await renderSyllabus();
             } catch(e) {
                 body.innerHTML = `<div class="p-6 text-red-500 text-xs font-bold">Error loading node: ${e.message}</div>`;
             }
@@ -974,10 +994,25 @@
                 if (res.passed) playSound('correct');
                 else playSound('incorrect');
 
+                const nextWeekNode = currentTrack === 'FAR' ? 'far_w2_q1' : (currentTrack === 'AUD' ? 'aud_w2_q1' : 'reg_w2_q1');
+
                 feedback.className = res.passed ?
                     "p-4 rounded-xl text-xs font-medium bg-emerald-100 text-emerald-900 border border-emerald-300 fade-in" :
                     "p-4 rounded-xl text-xs font-medium bg-amber-100 text-amber-900 border border-amber-300 fade-in";
-                feedback.innerHTML = res.feedback_html;
+                
+                feedback.innerHTML = `
+                    <div>
+                        ${res.feedback_html}
+                        ${res.passed ? `
+                            <div class="mt-4 pt-3 border-t border-emerald-200 flex justify-between items-center">
+                                <span class="font-bold text-emerald-900">Task Simulation Mastered! Week 2 Unlocked.</span>
+                                <button onclick="switchView('adaptive'); renderNode('${nextWeekNode}')" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow transition">
+                                    Proceed to Week 2 Modules <i class="fa-solid fa-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
             } catch(e) {
                 feedback.className = "p-4 rounded-xl text-xs font-medium bg-red-100 text-red-900 border border-red-300 fade-in";
                 feedback.innerHTML = `Error checking simulation: ${e.message}`;
