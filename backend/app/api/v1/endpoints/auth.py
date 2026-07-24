@@ -9,7 +9,7 @@ from backend.app.core.config import settings
 from backend.app.core.security import verify_password, get_password_hash, create_access_token
 from backend.app.db.session import get_db
 from backend.app.models.user import User
-from backend.app.models.curriculum import UserProgress, LearningNode
+from backend.app.models.curriculum import Course, Syllabus, UserProgress, LearningNode
 from backend.app.models.simulation import TBSAttempt, TBSScenario
 from backend.app.schemas.user import (
     UserCreate, UserUpdate, UserLogin, UserResponse, Token,
