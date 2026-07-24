@@ -64,9 +64,115 @@
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ==========================================================================
+           PURE CSS DARK MODE SYSTEM
+           1. Respects browser prefers-color-scheme: dark by default
+           2. Allows manual CSS toggle switch (#theme-toggle checkbox) without JS
+           ========================================================================== */
+
+        /* 1. Default Browser Dark Preference */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #0b0f19 !important;
+                color: #f8fafc !important;
+            }
+            
+            .bg-slate-50, .bg-slate-100 {
+                background-color: #0b0f19 !important;
+            }
+
+            .bg-white {
+                background-color: #1e293b !important;
+                color: #f8fafc !important;
+            }
+
+            .text-slate-800, .text-slate-900, .text-slate-700 {
+                color: #f8fafc !important;
+            }
+
+            .text-slate-600, .text-slate-500 {
+                color: #94a3b8 !important;
+            }
+
+            .border-slate-200, .border-slate-300, .border-slate-100 {
+                border-color: #334155 !important;
+            }
+
+            .shadow-sm, .shadow-md, .shadow-lg {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4) !important;
+            }
+
+            .theme-moon-icon { display: none !important; }
+            .theme-sun-icon { display: inline-block !important; }
+        }
+
+        /* 2. Manual Checkbox Toggle Overrides (Pure CSS :has Selector) */
+        :root:has(#theme-toggle:checked) body {
+            background-color: #0b0f19 !important;
+            color: #f8fafc !important;
+        }
+
+        :root:has(#theme-toggle:checked) .bg-slate-50, 
+        :root:has(#theme-toggle:checked) .bg-slate-100 {
+            background-color: #0b0f19 !important;
+        }
+
+        :root:has(#theme-toggle:checked) .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+
+        :root:has(#theme-toggle:checked) .text-slate-800,
+        :root:has(#theme-toggle:checked) .text-slate-900,
+        :root:has(#theme-toggle:checked) .text-slate-700 {
+            color: #f8fafc !important;
+        }
+
+        :root:has(#theme-toggle:checked) .text-slate-600,
+        :root:has(#theme-toggle:checked) .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+
+        :root:has(#theme-toggle:checked) .border-slate-200,
+        :root:has(#theme-toggle:checked) .border-slate-300,
+        :root:has(#theme-toggle:checked) .border-slate-100 {
+            border-color: #334155 !important;
+        }
+
+        :root:has(#theme-toggle:checked) .shadow-sm,
+        :root:has(#theme-toggle:checked) .shadow-md,
+        :root:has(#theme-toggle:checked) .shadow-lg {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        :root:has(#theme-toggle:checked) .theme-moon-icon { display: none !important; }
+        :root:has(#theme-toggle:checked) .theme-sun-icon { display: inline-block !important; }
+
+        /* 3. Pure CSS Sibling Combinator Fallback for Universal Browsers */
+        #theme-toggle:checked ~ header,
+        #theme-toggle:checked ~ main,
+        #theme-toggle:checked ~ div,
+        #theme-toggle:checked ~ footer {
+            color: #f8fafc;
+        }
+
+        #theme-toggle:checked ~ div .bg-white,
+        #theme-toggle:checked ~ main .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+
+        #theme-toggle:checked ~ div .text-slate-800,
+        #theme-toggle:checked ~ main .text-slate-800 {
+            color: #f8fafc !important;
+        }
     </style>
 </head>
 <body class="h-full flex flex-col text-slate-800 antialiased selection:bg-sky-500 selection:text-white">
+
+    <!-- Pure CSS Theme Toggle Checkbox -->
+    <input type="checkbox" id="theme-toggle" class="sr-only">
 
     <!-- Top Navigation Header -->
     <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
@@ -110,6 +216,13 @@
                             <span id="stat-mastery" class="font-bold font-mono text-sky-400">68%</span>
                         </div>
                     </div>
+
+                    <!-- Pure CSS Theme Toggle Button -->
+                    <label for="theme-toggle" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition cursor-pointer" title="Toggle Light / Dark Mode">
+                        <i class="fa-solid fa-moon text-sky-400 theme-moon-icon"></i>
+                        <i class="fa-solid fa-sun text-amber-400 theme-sun-icon hidden"></i>
+                        <span class="sr-only">Toggle Theme</span>
+                    </label>
 
                     <button onclick="toggleAudio()" id="audio-btn" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition" title="Toggle Sound Effects">
                         <i class="fa-solid fa-volume-high" id="audio-icon"></i>
