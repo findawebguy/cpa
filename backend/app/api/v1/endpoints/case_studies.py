@@ -111,3 +111,20 @@ def trigger_daily_live_news_ingestion(
     
     result = LiveNewsIngestionService.run_daily_agent_review_and_ingest(db, raw_feed, api_key=api_key)
     return result
+
+
+@router.get("/live-news/llm-dataset-logs")
+def get_llm_dataset_logs(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Returns collected LLM interaction datasets from the Senior Financial Analyst Agent for future model fine-tuning & dataset auditing.
+    """
+    from backend.app.models.agent_log import LLMAuditLog
+    logs = db.query(LLMAuditLog).order_by(LLMAuditLog.timestamp.desc()).limit(100).all()
+    return {
+        "total_records": len(logs),
+        "dataset": logs
+    }
+

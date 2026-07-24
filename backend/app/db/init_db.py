@@ -6,6 +6,7 @@ from backend.app.models.curriculum import Course, Syllabus, LearningNode, UserPr
 from backend.app.models.simulation import TBSScenario, TBSAttempt
 from backend.app.models.flashcard import Flashcard
 from backend.app.models.case_study import CaseStudy, CaseQuestion, CaseAttempt
+from backend.app.models.agent_log import LLMAuditLog
 from backend.app.db.seed_questions import get_all_questions
 from backend.app.db.seed_cases import get_case_studies
 
