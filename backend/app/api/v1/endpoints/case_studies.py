@@ -16,11 +16,14 @@ def get_case_studies_by_course(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if course_code.upper() == "ALL":
+        return db.query(CaseStudy).order_by(CaseStudy.id.desc()).all()
+
     course = db.query(Course).filter(Course.code == course_code.upper()).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
         
-    case_studies = db.query(CaseStudy).filter(CaseStudy.course_id == course.id).all()
+    case_studies = db.query(CaseStudy).filter(CaseStudy.course_id == course.id).order_by(CaseStudy.id.desc()).all()
     return case_studies
 
 @router.get("/{case_id}", response_model=CaseStudyResponse)
