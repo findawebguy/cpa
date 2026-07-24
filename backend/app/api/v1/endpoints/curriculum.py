@@ -52,7 +52,7 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
     attempted_node_ids = {p.node_id for p in user_progress_nodes}
 
     res = []
-    prev_week_completed = True
+    prev_week_completed = True  # Week 1 is unlocked by default
 
     for idx, s in enumerate(syllabi):
         nodes = db.query(LearningNode).filter(LearningNode.syllabus_id == s.id).order_by(LearningNode.id).all()
@@ -65,14 +65,18 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
 
         if is_completed:
             status_str = "completed"
-        elif is_attempted or idx == 0:
+        elif is_attempted:
             status_str = "in-progress"
         elif prev_week_completed:
-            status_str = "unlocked"
+            status_str = "unlocked" if idx > 0 else "in-progress"
         else:
-            status_str = "unlocked"  # Open access for flexible practice
+            status_str = "locked"
 
-        prev_week_completed = is_completed or is_attempted
+        # Sequential unlocking dependency: previous week must be completed to unlock next week
+        prev_week_completed = is_completed
+
+        # If week is locked, strip start_node_key so user cannot jump ahead
+        node_key = first_node_key if status_str != "locked" else None
 
         res.append(SyllabusWeekResponse(
             id=s.id,
@@ -80,7 +84,7 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
             title=s.title,
             node_count=node_count,
             status=status_str,
-            start_node_key=first_node_key
+            start_node_key=node_key
         ))
     return res
 

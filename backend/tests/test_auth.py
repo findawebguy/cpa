@@ -22,8 +22,14 @@ def test_user_profile(client):
     assert "readiness_score" in data
     assert "streak_days" in data
 
+def test_update_user_profile(client):
+    new_email = "updated_student@cpa.com"
+    res = client.put("/api/v1/auth/user/profile", json={"email": new_email})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["email"] == new_email
+
 def test_guest_session_migration(client):
-    # Test migrating guest history into account
     payload = {
         "guest_progress": [
             {"node_key": "q1", "mastery_level": 75.0, "streak_days": 2},
@@ -40,17 +46,26 @@ def test_guest_session_migration(client):
     assert data["status"] == "success"
     assert data["migrated_nodes"] >= 0
 
-def test_qr_session_generation_and_login(client):
-    # Test QR auth token generation
+def test_qr_session_generation_and_watcher(client):
+    # 1. Desktop generates QR session token
     res = client.post("/api/v1/auth/qr-session")
     assert res.status_code == 200
     data = res.json()
-    assert "qr_token" in data
-    assert "qr_url" in data
-
-    # Test scanning/validating QR token
     token = data["qr_token"]
+
+    # 2. Desktop watcher polls before scan -> scanned should be False
+    res_watcher_before = client.get(f"/api/v1/auth/qr-status?qr_token={token}")
+    assert res_watcher_before.status_code == 200
+    assert res_watcher_before.json()["scanned"] is False
+
+    # 3. Mobile phone scans QR code (hits qr-login endpoint)
     res_qr = client.get(f"/api/v1/auth/qr-login?qr_token={token}")
     assert res_qr.status_code == 200
-    qr_data = res_qr.json()
-    assert "access_token" in qr_data
+    assert "access_token" in res_qr.json()
+
+    # 4. Desktop watcher polls after scan -> scanned should be True!
+    res_watcher_after = client.get(f"/api/v1/auth/qr-status?qr_token={token}")
+    assert res_watcher_after.status_code == 200
+    status_data = res_watcher_after.json()
+    assert status_data["scanned"] is True
+    assert status_data["access_token"] == token

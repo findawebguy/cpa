@@ -97,6 +97,13 @@ class CPAApiClient {
         return await this.request("/auth/user/profile");
     }
 
+    async updateUserProfile(userData) {
+        return await this.request("/auth/user/profile", {
+            method: "PUT",
+            body: JSON.stringify(userData)
+        });
+    }
+
     async migrateGuestSession(guestProgress = [], tbsCode = null, tbsRows = null) {
         return await this.request("/auth/migrate-guest-session", {
             method: "POST",
@@ -112,6 +119,10 @@ class CPAApiClient {
         return await this.request("/auth/qr-session", {
             method: "POST"
         });
+    }
+
+    async checkQRStatus(qrToken) {
+        return await this.request(`/auth/qr-status?qr_token=${encodeURIComponent(qrToken)}`);
     }
 
     async qrLogin(qrToken) {

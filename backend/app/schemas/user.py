@@ -7,6 +7,11 @@ class UserCreate(BaseModel):
     password: str
     target_exam_date: Optional[datetime] = None
 
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    target_exam_date: Optional[datetime] = None
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -38,3 +43,8 @@ class QRSessionResponse(BaseModel):
     qr_token: str
     auth_token: str
     qr_url: str
+
+class QRStatusResponse(BaseModel):
+    scanned: bool
+    access_token: Optional[str] = None
+    user: Optional[UserResponse] = None
