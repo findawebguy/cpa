@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional, Dict, Any
 
 class CaseQuestionBase(BaseModel):
@@ -10,8 +10,7 @@ class CaseQuestionResponse(CaseQuestionBase):
     id: int
     case_study_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CaseStudyBase(BaseModel):
     title: str
@@ -24,8 +23,7 @@ class CaseStudyResponse(CaseStudyBase):
     course_id: int
     questions: List[CaseQuestionResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CaseStudySubmitRequest(BaseModel):
     answers: dict[int, int]  # map of question_id -> selected_option_index
@@ -38,4 +36,3 @@ class CaseStudySubmitResponse(BaseModel):
 class LiveNewsIngestionRequest(BaseModel):
     raw_feed: Optional[Dict[str, Any]] = None
     api_key: Optional[str] = ""
-

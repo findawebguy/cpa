@@ -83,3 +83,9 @@ def test_reset_user_progress(client):
     prof = client.get("/api/v1/auth/user/profile").json()
     assert prof["total_attempted"] == 0
 
+def test_logout_user(client):
+    res = client.post("/api/v1/auth/logout")
+    assert res.status_code == 200
+    assert res.json()["status"] == "success"
+
+

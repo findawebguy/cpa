@@ -33,6 +33,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
 # Mount API Router on both /api/v1 and /cpa/api/v1 for reverse proxy subpath support
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(api_router, prefix="/cpa/api/v1")

@@ -266,6 +266,13 @@ def reset_user_progress(
     db.commit()
     return {"status": "success", "message": "User study progress and syllabus state successfully reset for testing."}
 
+@router.post("/logout")
+def logout_user():
+    """
+    Session Logout Endpoint: Invalidates client-side authentication token session.
+    """
+    return {"status": "success", "message": "Successfully logged out session."}
+
 @router.post("/admin/reseed")
 def admin_reseed_curriculum(
     current_user: User = Depends(get_current_user),
