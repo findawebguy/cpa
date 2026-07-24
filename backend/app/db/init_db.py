@@ -98,7 +98,7 @@ def init_db(db: Session):
         correct_answer_idx=0,
         remediation_html="Owner contributions increase Cash (Asset) and Contributed Capital (Equity).",
         next_correct_key="q2",
-        next_incorrect_key="q2"
+        next_incorrect_key="q1"
     ))
 
     # Q2 Node

@@ -14,6 +14,23 @@ def test_get_syllabus(client):
     data = res.json()
     assert len(data) == 7
     assert data[0]["week_number"] == 1
+    # Week 1 should be unlocked, Week 2 locked
+    assert data[0]["status"] in ["unlocked", "in-progress"]
+    assert data[1]["status"] == "locked"
+
+def test_remediation_does_not_unlock_week_2(client):
+    # Submit incorrect answer on q1 -> routed to rem1
+    res1 = client.post("/api/v1/nodes/q1/submit", json={"index": 1, "confidence": "high"})
+    assert res1.json()["next_node_key"] == "rem1"
+
+    # Submit incorrect answer on q1_easy -> routed back to q1
+    res2 = client.post("/api/v1/nodes/q1_easy/submit", json={"index": 1, "confidence": "medium"})
+    assert res2.json()["next_node_key"] == "q1"
+
+    # Check syllabus - Week 2 MUST remain locked
+    syl = client.get("/api/v1/courses/FAR/syllabus").json()
+    assert syl[1]["status"] == "locked"
+    assert syl[1]["start_node_key"] is None
 
 def test_get_node_security_strip(client):
     res = client.get("/api/v1/nodes/q1")

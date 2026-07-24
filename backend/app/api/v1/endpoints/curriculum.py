@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from backend.app.db.session import get_db
 from backend.app.models.user import User
 from backend.app.models.curriculum import Course, Syllabus, LearningNode, UserProgress
+from backend.app.models.simulation import TBSAttempt, TBSScenario
 from backend.app.schemas.curriculum import CourseResponse, SyllabusWeekResponse, LearningNodeResponse, OptionPublic, OptionSubmit, NodeSubmissionResult
 from backend.app.core.adaptive_engine import AdaptiveEngine
 from backend.app.api.v1.endpoints.auth import get_current_user
@@ -47,9 +48,16 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
 
     syllabi = db.query(Syllabus).filter(Syllabus.course_id == course.id).order_by(Syllabus.week_number).all()
     
-    # Get all nodes user has attempted
-    user_progress_nodes = db.query(UserProgress.node_id).filter(UserProgress.user_id == current_user.id).all()
-    attempted_node_ids = {p.node_id for p in user_progress_nodes}
+    # Get all nodes user has passed / mastered
+    user_progresses = db.query(UserProgress).filter(UserProgress.user_id == current_user.id).all()
+    mastered_node_ids = {p.node_id for p in user_progresses if p.mastery_level >= 60.0 or p.streak_days >= 1}
+    attempted_node_ids = {p.node_id for p in user_progresses}
+
+    # Check if user has passed TBS for this track (score >= 75%)
+    tbs_passed = False
+    passed_attempts = db.query(TBSAttempt).filter(TBSAttempt.user_id == current_user.id, TBSAttempt.score >= 75.0).first()
+    if passed_attempts:
+        tbs_passed = True
 
     res = []
     prev_week_completed = True  # Week 1 is unlocked by default
@@ -59,9 +67,19 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
         node_count = len(nodes)
         first_node_key = nodes[0].node_key if nodes else None
 
-        attempted_count = sum(1 for n in nodes if n.id in attempted_node_ids)
-        is_completed = (node_count > 0 and attempted_count >= node_count)
-        is_attempted = (attempted_count > 0)
+        # Filter out remediation and end nodes to check core question nodes
+        question_nodes = [n for n in nodes if n.node_type == "question"]
+        end_nodes = [n for n in nodes if n.node_type == "end"]
+
+        # A week is completed ONLY if:
+        # 1. An "end" node (e.g. finish_w1) for that week has been reached & recorded in user_progress, OR
+        # 2. All core question nodes in the week have been mastered, OR
+        # 3. TBS for that track has been passed.
+        end_node_reached = any(n.id in attempted_node_ids for n in end_nodes)
+        all_questions_mastered = (len(question_nodes) > 0 and all(n.id in mastered_node_ids for n in question_nodes))
+
+        is_completed = end_node_reached or all_questions_mastered or (s.week_number == 1 and tbs_passed)
+        is_attempted = (len(nodes) > 0 and any(n.id in attempted_node_ids for n in nodes))
 
         if is_completed:
             status_str = "completed"
@@ -72,7 +90,7 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
         else:
             status_str = "locked"
 
-        # Sequential unlocking dependency: previous week must be completed to unlock next week
+        # Sequential unlocking dependency: previous week MUST be completed to unlock next week
         prev_week_completed = is_completed
 
         # If week is locked, strip start_node_key so user cannot jump ahead
