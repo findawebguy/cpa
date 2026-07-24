@@ -1247,7 +1247,9 @@
 
             try {
                 const sessionRes = await window.cpaApi.generateQRSession();
-                const targetUrl = sessionRes.qr_url;
+                const path = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
+                const targetUrl = `${window.location.origin}${path}#qr_login_${sessionRes.qr_token}`;
+                
                 linkDiv.innerText = targetUrl;
 
                 new QRCode(canvasContainer, {

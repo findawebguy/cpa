@@ -121,10 +121,15 @@ def generate_qr_session(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Generates a QR authentication token for mobile cross-device login.
+    Generates a QR authentication token for mobile cross-device login, correctly respecting reverse proxy subpaths.
     """
     token = create_access_token(subject=current_user.id)
-    base_url = str(request.base_url).rstrip("/")
+    referer = request.headers.get("referer")
+    if referer:
+        base_url = referer.split("#")[0].rstrip("/")
+    else:
+        base_url = str(request.base_url).rstrip("/")
+        
     qr_url = f"{base_url}/#qr_login_{token}"
 
     return QRSessionResponse(
