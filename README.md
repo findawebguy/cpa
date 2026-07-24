@@ -13,6 +13,9 @@ A full-stack, adaptive CPA Exam preparation and simulation platform built for th
 ## 🌟 Key Features
 
 - 🧠 **Bayesian Adaptive Engine**: Evaluates correctness alongside self-assessed metacognitive confidence (`low`, `medium`, `high`). High-confidence errors trigger immediate deep principle remediations, while high-confidence correct answers accelerate candidates directly to advanced CPA exam nodes.
+- 📱 **Mobile Passkey Login**: Use your phone camera to scan a QR code on desktop for instant auto-login session synchronization.
+- 🔓 **Strict Sequential Progression**: Modules unlock sequentially upon completing preceding requirements, with complete state validation across tracks.
+- 🛠️ **Admin & QA Overrides**: Built-in Admin QA panel allowing instant module completion overrides, progress resets, and full curriculum re-seeding for fast manual testing.
 - 📊 **Task-Based Simulations (TBS)**: Interactive exam environment featuring multi-exhibit audit findings, general journal workbooks, account classification dropdowns, and automatic debit/credit balance checkers.
 - 🃏 **Leitner Spaced-Repetition Flashcards**: 50+ high-yield concept cards indexed by FASB/AICPA/IRC codification standards (ASC 606, ASC 842, COSO Framework, IRC § 102/103).
 - 📈 **Cognitive Diagnostics Dashboard**: Chart.js domain heatmaps, exam readiness index scoring, and weakness insights.
@@ -88,6 +91,31 @@ A full-stack, adaptive CPA Exam preparation and simulation platform built for th
 Run the full automated pytest suite (Auth, Adaptive Engine, Curriculum, TBS Scoring):
 ```bash
 python -m pytest backend/tests -v
+```
+
+---
+
+## 🛠️ Admin & QA Testing Overrides
+
+### 1. In-App Admin QA Panel
+- Click your profile button in the top right to open **Account & Exam Settings**.
+- Click **`Admin / QA`** (`shield-halved` icon) to view all tracks (FAR, AUD, REG) and their week-by-week progress.
+- Click **`Mark Done`** next to any week to instantly complete that module without needing accounting knowledge.
+- Click **`Reset Progress`** to clear all attempts and start testing from Week 1.
+
+### 2. Updating / Re-seeding Production Database
+When deploying updates to production, re-seed the live database without server downtime via API:
+
+```bash
+# 1. Obtain Auth Token
+TOKEN=$(curl -s -X POST https://demo.i-te.am/cpa/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"student@cpa.com","password":"pass123"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+
+# 2. Trigger Full Re-seed (Drops & Re-populates Curriculum from init_db.py)
+curl -s -X POST https://demo.i-te.am/cpa/api/v1/auth/admin/reseed \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json"
 ```
 
 ---

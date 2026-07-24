@@ -197,6 +197,19 @@ class CPAApiClient {
             method: "POST"
         });
     }
+
+    // Admin: Mark a specific week as completed
+    async adminCompleteWeek(track, weekNumber) {
+        return await this.request("/auth/admin/complete-week", {
+            method: "POST",
+            body: JSON.stringify({ track, week_number: weekNumber })
+        });
+    }
+
+    // Admin: Get syllabus overview with completion status
+    async adminGetOverview() {
+        return await this.request("/auth/admin/syllabus-overview");
+    }
 }
 
 window.cpaApi = new CPAApiClient();

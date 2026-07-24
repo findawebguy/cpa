@@ -277,3 +277,96 @@ def admin_reseed_curriculum(
     reseed_curriculum(db)
     return {"status": "success", "message": "Curriculum data fully re-seeded from init_db.py."}
 
+
+@router.post("/admin/complete-week")
+def admin_complete_week(
+    body: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Admin: Mark a specific week as completed by creating UserProgress records for all nodes
+    (including the end node) in that week. Used for QA to skip ahead without answering questions.
+    Body: { "track": "FAR", "week_number": 1 }
+    """
+    track = body.get("track", "FAR").upper()
+    week_number = body.get("week_number")
+    if not week_number:
+        raise HTTPException(status_code=400, detail="week_number is required")
+
+    course = db.query(Course).filter(Course.code == track).first()
+    if not course:
+        raise HTTPException(status_code=404, detail=f"Course '{track}' not found")
+
+    syllabus = db.query(Syllabus).filter(
+        Syllabus.course_id == course.id,
+        Syllabus.week_number == week_number
+    ).first()
+    if not syllabus:
+        raise HTTPException(status_code=404, detail=f"Week {week_number} not found in {track}")
+
+    nodes = db.query(LearningNode).filter(LearningNode.syllabus_id == syllabus.id).all()
+    completed_count = 0
+    for node in nodes:
+        existing = db.query(UserProgress).filter(
+            UserProgress.user_id == current_user.id,
+            UserProgress.node_id == node.id
+        ).first()
+        if not existing:
+            progress = UserProgress(
+                user_id=current_user.id,
+                node_id=node.id,
+                mastery_level=100.0,
+                streak_days=1
+            )
+            db.add(progress)
+            completed_count += 1
+        else:
+            existing.mastery_level = 100.0
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Week {week_number} ({track}) marked as completed. {completed_count} node(s) recorded.",
+        "week_title": syllabus.title
+    }
+
+
+@router.get("/admin/syllabus-overview")
+def admin_syllabus_overview(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Admin: Get a full overview of all tracks, weeks, and their completion status
+    for the current user. Used by the admin panel.
+    """
+    courses = db.query(Course).all()
+    user_progresses = db.query(UserProgress).filter(UserProgress.user_id == current_user.id).all()
+    attempted_node_ids = {p.node_id for p in user_progresses}
+
+    result = []
+    for course in courses:
+        syllabi = db.query(Syllabus).filter(Syllabus.course_id == course.id).order_by(Syllabus.week_number).all()
+        weeks = []
+        for s in syllabi:
+            nodes = db.query(LearningNode).filter(LearningNode.syllabus_id == s.id).all()
+            end_nodes = [n for n in nodes if n.node_type == "end"]
+            question_nodes = [n for n in nodes if n.node_type == "question"]
+            end_node_reached = any(n.id in attempted_node_ids for n in end_nodes)
+            questions_attempted = sum(1 for n in question_nodes if n.id in attempted_node_ids)
+
+            weeks.append({
+                "week_number": s.week_number,
+                "title": s.title,
+                "total_nodes": len(nodes),
+                "question_count": len(question_nodes),
+                "questions_attempted": questions_attempted,
+                "is_completed": end_node_reached,
+            })
+        result.append({
+            "track": course.code,
+            "title": course.title,
+            "weeks": weeks
+        })
+    return result
