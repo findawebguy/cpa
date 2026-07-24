@@ -1062,11 +1062,27 @@
             try {
                 const node = await window.cpaApi.getNode(nodeId);
 
-                document.getElementById('node-type-badge').innerText = node.node_type.toUpperCase() + " NODE";
-                document.getElementById('node-type-badge').className = node.node_type === 'question' ? 
-                    "bg-sky-100 text-sky-800 text-xs px-2.5 py-1 rounded-full font-bold" : 
-                    "bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold";
-                document.getElementById('current-concept-tag').innerText = node.concept_name;
+                let qNumMatch = nodeId.match(/_q(\d+)/);
+                let qIndex = qNumMatch ? parseInt(qNumMatch[1]) + 1 : 1;
+                
+                if (node.node_type === 'question') {
+                    document.getElementById('node-type-badge').innerText = `CORE QUESTION ${qIndex}`;
+                    document.getElementById('node-type-badge').className = "bg-sky-100 text-sky-800 text-xs px-2.5 py-1 rounded-full font-bold";
+                    document.getElementById('current-concept-tag').innerText = `Question ${qIndex} of 10 • ${node.concept_name}`;
+                    
+                    const pct = Math.min(100, Math.round((qIndex / 10) * 100));
+                    document.getElementById('concept-level-text').innerText = `Question ${qIndex} of 10 (${pct}%)`;
+                    document.getElementById('concept-level-bar').style.width = `${pct}%`;
+                } else if (node.node_type === 'remediation') {
+                    document.getElementById('node-type-badge').innerText = "PRINCIPLE REMEDIATION";
+                    document.getElementById('node-type-badge').className = "bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold";
+                    document.getElementById('current-concept-tag').innerText = `Remediation Guidance • ${node.concept_name}`;
+                } else {
+                    document.getElementById('node-type-badge').innerText = "MODULE MASTERED";
+                    document.getElementById('node-type-badge').className = "bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold";
+                    document.getElementById('concept-level-text').innerText = `Mastered (100%)`;
+                    document.getElementById('concept-level-bar').style.width = `100%`;
+                }
 
                 if (node.node_type === "question") {
                     const opts = node.options || node.options_json || [];
