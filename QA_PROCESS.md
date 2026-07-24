@@ -4,85 +4,82 @@ This document outlines the Quality Assurance (QA) testing process for the CPA In
 
 When executing these tests, agents should act as human users interacting with the frontend UI, but they may also inspect network requests (e.g., via browser devtools) to verify backend functionality.
 
-**Objective**: Create detailed bug reports or actionable suggestions for any failures encountered during the process.
+---
+
+## 🔑 Agent Identity & Test Tracking
+
+> [!IMPORTANT]
+> **Unique Agent Identity Requirement**:
+> Each subagent MUST register and test under its own dedicated identity so that test attempts, case study submissions, and analytics diagnostics can be tracked individually in the database.
+>
+> - **Email Format**: `qa_agent_{agent_role}_{timestamp_or_id}@cpa-qa.com`
+>   - Example UI Agent: `qa_ui_agent_101@cpa-qa.com`
+>   - Example Financial Analyst: `qa_analyst_2026@cpa-qa.com`
+> - **Password**: Use a standard test password (e.g., `QAPass123!`).
+>
+> **Execution**:
+> 1. Upon launching the site, click the User Profile icon / **Sign In / Register** button.
+> 2. Enter the unique agent email and password, then click **Register**.
+> 3. Verify the user badge updates to reflect the agent's identity before commencing test execution.
+
+---
 
 ## Environment Setup
-- The application runs locally. Ensure the backend FastAPI server (`uvicorn backend.app.main:app --reload`) and frontend (serving `static/index.html`) are active.
-- Access the application via `http://localhost:8000` or the configured local domain (e.g., `http://127.0.0.1:8000`).
+- Ensure the backend FastAPI server (`uvicorn backend.app.main:app --host 0.0.0.0 --port 8005 --reload`) and frontend (serving `static/index.html`) are active.
+- Access the application via `http://localhost:8005` or production URL (`https://demo.i-te.am/cpa/`).
 
 ---
 
 ## 1. Authentication & Session Management
 
 ### Happy Path
-- **Registration**: Register a new user with a valid email and password. Verify that the user is logged in automatically and the dashboard updates.
-- **Login**: Log in with an existing user (e.g., `student@cpa.com` / `pass123`). Verify successful login and data loading.
-- **Logout**: Click the "Log Out" button in the Settings modal. Verify the session clears and the UI returns to the guest state.
-- **Guest Migration**: Answer a few questions as a guest, then register an account. Verify that the guest progress (score, current week) migrates to the newly created account.
+- **Registration**: Register a new user with the agent's unique email (`qa_agent_{id}@cpa-qa.com`). Verify that the user is logged in automatically and the dashboard updates with the agent's identity.
+- **Login**: Log out and log back in with the agent's credentials. Verify successful authentication and data recovery.
+- **Logout**: Click "Log Out" in the Settings modal. Verify the session clears and returns to guest mode.
+- **Guest Migration**: Answer a question as a guest, then register the agent account. Verify guest progress migrates into the agent's profile.
 
 ### Non-Happy Path
-- **Invalid Login**: Attempt to log in with an incorrect password. Verify the UI displays an appropriate error message (e.g., "Incorrect email or password") and does not crash.
-- **Duplicate Registration**: Attempt to register an account with an email that already exists. Verify the UI gracefully handles the 400 Bad Request error.
-- **Session Expiry**: Simulate an expired JWT token (if possible) and attempt an authenticated action (like saving progress). Verify the app prompts the user to log in again rather than failing silently.
+- **Invalid Login**: Attempt login with an incorrect password. Verify clear error feedback ("Incorrect email or password").
+- **Duplicate Registration**: Attempt to register an existing agent email again. Verify graceful 400 Bad Request handling.
 
 ---
 
 ## 2. Core Question Engine (Adaptive Track)
 
 ### Happy Path
-- **Answer Correctly**: Select the correct answer for a question. Verify the feedback is positive, confetti triggers, and the "Next Question" button navigates to the next logical node in the sequence.
-- **Answer Incorrectly**: Select an incorrect answer. Verify the UI displays the remediation view. Click "Proceed to Practical Application" and verify it navigates to a scaffolded/easier question or retries the concept.
-- **Completion**: Complete all questions in a given week. Verify the "Week Mastered" node appears and the Syllabus view reflects completion (e.g., Week 1 gets a green checkmark).
+- **Answer Correctly**: Select the correct option. Verify positive feedback, confetti trigger, and progression to the next Core Question (`Question X of 10`).
+- **Answer Incorrectly**: Select an incorrect option. Verify the `PRINCIPLE REMEDIATION` view renders. Click **"Proceed to Practical Application"** and verify it routes directly back to the target question without 404 errors.
+- **Completion**: Complete all 10 questions in a week. Verify the `MODULE MASTERED` view appears and syllabus status updates to Completed.
 
 ### Non-Happy Path
-- **Empty Submission**: Attempt to submit a question without selecting an option. Verify the UI prevents submission or alerts the user.
-- **Network Failure During Submission**: Simulate a network disconnect just before answering. Verify the UI handles the API error gracefully (e.g., "Failed to save progress") without crashing.
+- **Unselected Submission**: Attempt submission without selecting an option. Verify submission is blocked or alerted.
 
 ---
 
 ## 3. Case Studies & Task-Based Simulations (TBS)
 
 ### Happy Path
-- **Case Study Viewer**: Navigate to the "Case Studies" tab. Open a simulation. Verify the split-screen modal appears with exhibits on the left and questions on the right.
-- **Case Study Submission**: Answer the questions and submit. Verify that the results show correct/incorrect highlights, explanations are revealed, and the score updates.
-- **TBS Interactive Input**: Navigate to the "Task-Based Simulations (TBS)" tab. Add and remove journal entry rows. Input valid debits/credits. Verify the balance calculator updates accurately.
-- **TBS Submission**: Submit a fully balanced, correct journal entry. Verify positive feedback and score update.
+- **Case Study Viewer**: Open the "Case Studies" tab. Launch a case study (e.g. AUD or REG 150-credit hour rule). Verify split-screen exhibit viewer and clickable source article links.
+- **Case Study Submission**: Submit multi-part answers under the agent's identity. Verify score calculation and attempt persistence.
+- **TBS Interactive Input**: Add/remove debit and credit rows in the TBS tool. Verify balance calculations update in real time.
 
 ### Non-Happy Path
-- **Imbalanced TBS Entry**: Submit a journal entry where debits do not equal credits. Verify the system rejects it and alerts the user of the imbalance.
-- **Partial Case Study Submission**: Submit a case study with some questions left blank. Verify the system treats blank answers as incorrect but does not crash, or prompts the user to finish.
-- **Missing Exhibits**: If a case study lacks exhibits (data error), verify the UI handles the missing data gracefully (e.g., displaying "No exhibits provided").
+- **Imbalanced TBS Submission**: Submit an imbalanced journal entry. Verify rejection alert.
 
 ---
 
 ## 4. Settings & Account Management
 
 ### Happy Path
-- **Update Settings**: Open the Settings Modal. Change the "Target CPA Exam Date" and submit. Verify the UI updates and the data persists across a page reload.
-- **Change Password**: Enter a new password and save. Verify the update succeeds, and subsequent logins require the new password.
-
-### Non-Happy Path
-- **Invalid Password Update**: Attempt to change the password to a blank string or an invalid format. Verify the UI/API rejects it with a clear error message.
-
----
-
-## 5. Admin Panel (Database Reseed)
-
-### Happy Path
-- **Open Admin Panel**: Navigate to Settings > QA/Admin Panel.
-- **Reseed Database**: Click "Reseed Database". Acknowledge the critical warning. Verify the backend successfully rebuilds the curriculum and the frontend resets cleanly without infinite loading states.
-
-### Non-Happy Path
-- **Unauthorized Access**: Attempt to call the `/api/v1/auth/admin/syllabus-overview` endpoint using a non-admin token (or standard student token). Verify it returns a 403 Forbidden.
+- **Update Exam Date**: Open Settings Modal, set a target exam date, and click **Save Changes**. Verify persistence under the agent's profile.
 
 ---
 
 ## Reporting Guidelines for Subagents
 
 When logging a bug or suggestion:
-1. **Title**: Clear, concise summary of the issue.
-2. **Path**: Happy or Non-Happy.
-3. **Steps to Reproduce**: Exact sequence of clicks/inputs.
-4. **Expected vs. Actual Result**: What should have happened vs. what actually happened.
-5. **Logs**: Include frontend console errors or backend stack traces if applicable.
-6. **Suggested Fix**: (Optional) Provide code-level suggestions for resolving the issue.
+1. **Agent ID**: `qa_agent_{id}@cpa-qa.com`
+2. **Title**: Clear, concise summary.
+3. **Path**: Happy Path or Non-Happy Path.
+4. **Steps to Reproduce**: Exact click sequence.
+5. **Expected vs. Actual Result**.

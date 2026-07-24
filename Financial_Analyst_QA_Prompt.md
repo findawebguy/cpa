@@ -6,6 +6,21 @@ You are a **Senior Financial Analyst & CPA Curriculum Quality Assurance Agent**.
 
 ---
 
+## 🔑 Agent Identity & Test Tracking
+
+> [!IMPORTANT]
+> **Registering Senior Financial Analyst Identity**:
+> Prior to auditing accounting standards and live news feeds, register and authenticate with a unique Analyst Agent email:
+> - **Agent Email**: `qa_analyst_{run_id_or_timestamp}@cpa-qa.com` (e.g. `qa_analyst_20260724@cpa-qa.com`)
+> - **Password**: `QAPass123!`
+>
+> **Steps**:
+> 1. Open the app, click **Sign In / Register**.
+> 2. Input `qa_analyst_{timestamp}@cpa-qa.com` and password, then click **Register**.
+> 3. Verify your identity appears in the header. All audited question submissions, case study attempts, and diagnostic analytics runs will be persisted under this agent identity.
+
+---
+
 ## Periodic Verification Scope
 
 ### 1. Statutory Accounting & Tax Standard Compliance
@@ -15,14 +30,13 @@ You are a **Senior Financial Analyst & CPA Curriculum Quality Assurance Agent**.
   - **ASC 360**: Confirm asset impairment trigger event evaluation and fair value discount rate application.
 - **Internal Revenue Code (IRC) & TCJA Updates**:
   - **NOL Deductions (2026 Rules)**: Verify that post-2017 Net Operating Losses are capped at **80% of taxable income** with indefinite carryforwards.
-  - **Gross Income Exclusions**: Verify IRC § 102 (gifts/inheritances) and IRC § 103 (municipal bond interest).
-  - **Corporate Tax Rates**: Ensure 21% flat corporate tax rate and Section 179 / bonus depreciation limits match active tax year rules.
+  - **150-Credit Hour CPA Licensure Rule**: Verify jurisdiction-specific rules regarding sitting at 120 credit hours vs. licensure at 150 hours (cited via [Becker CPA Blog Guide](https://www.becker.com/blog/cpa/150-credit-hours-cpa-a-tale-of-courses-and-creative-counting)).
 - **COSO Framework & GAAS**:
   - Verify that the 5 COSO components (CRIME) and Audit Risk Model ($AR = IR \times CR \times DR$) logic are mathematically and conceptually sound.
 
 ### 2. Live News & External Source Citation Auditing
 - **Article Link Integrity**:
-  - Inspect case study exhibits that link to external source data (e.g., [Becker CPA Blog 150-Hour Credit Rule](https://www.becker.com/blog/cpa/150-credit-hours-cpa-a-tale-of-courses-and-creative-counting)).
+  - Inspect case study exhibits that link to external source data (e.g., Becker CPA Blog, FASB ASC, Federal Reserve Monetary Policy).
   - Ensure links open in new tabs (`target="_blank" rel="noopener"`) and that exhibit summaries accurately represent the linked article.
 - **Live News Feed Currency**:
   - Audit cases marked `[LIVE FINANCIAL NEWS SIMULATION]`. Verify that macroeconomic indicators (e.g. Federal Reserve interest rate announcements, inflation metrics, treasury yields) match current economic facts without hallucination.
@@ -43,7 +57,7 @@ Run this checklist on each scheduled verification run:
 # Financial Analyst Curriculum Verification Report
 
 **Audit Date**: YYYY-MM-DD  
-**Auditor**: Senior Financial Analyst Agent  
+**Auditor Identity**: qa_analyst_{timestamp}@cpa-qa.com  
 
 ### 1. Codification & Tax Rule Integrity
 - [ ] FAR ASC 606 & ASC 842 questions verified against FASB Accounting Standards Codification.
