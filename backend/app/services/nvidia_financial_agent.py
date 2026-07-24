@@ -156,6 +156,12 @@ Published Date: {raw_news_item.get('published_at', 'N/A')}
             close_db = True
 
         try:
+            from backend.app.db.base import Base
+            try:
+                Base.metadata.create_all(bind=db.get_bind())
+            except Exception:
+                pass
+
             log_entry = LLMAuditLog(
                 agent_role="Senior Financial Analyst Agent",
                 model_name=self.model_name,

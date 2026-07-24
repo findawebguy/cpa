@@ -44,7 +44,7 @@ class LiveNewsIngestionService:
 
         # 1. Invoke Senior Financial Analyst Agent (NVIDIA NIM Endpoint)
         agent = NVIDIAFinancialAnalystAgent(api_key=api_key)
-        review_result = agent.review_and_format_news(raw_feed)
+        review_result = agent.review_and_format_news(raw_feed, db=db)
 
         # 2. Check Agent Approval Status
         if not review_result.get("is_usable") or review_result.get("approval_status") != "APPROVED":
@@ -54,35 +54,51 @@ class LiveNewsIngestionService:
                 "ingested": False
             }
 
-        # 3. Target CPA Course Track
-        target_domain = review_result.get("cpa_domain", "AUD").upper()
-        course = db.query(Course).filter(Course.code == target_domain).first()
-        if not course:
-            course = db.query(Course).filter(Course.code == "FAR").first()
+        try:
+            from backend.app.db.base import Base
+            Base.metadata.create_all(bind=db.get_bind())
 
-        # 4. Insert Verified Case Study into Database
-        case_study = CaseStudy(
-            course_id=course.id,
-            title=review_result.get("title", "Verified Live Financial Case Study"),
-            description=review_result.get("description", "Daily verified financial news scenario."),
-            scenario_text=review_result.get("scenario_text", ""),
-            exhibits_html=review_result.get("exhibits_html", ""),
-            questions_json=review_result.get("questions", [])
-        )
-        db.add(case_study)
-        db.commit()
-        db.refresh(case_study)
+            # 3. Target CPA Course Track
+            target_domain = review_result.get("cpa_domain", "AUD").upper()
+            course = db.query(Course).filter(Course.code == target_domain).first()
+            if not course:
+                course = db.query(Course).filter(Course.code == "FAR").first()
+            if not course:
+                course = db.query(Course).first()
+            
+            course_id = course.id if course else 1
 
-        # Update last ingestion timestamp
-        global _LAST_INGESTION_TIMESTAMP
-        _LAST_INGESTION_TIMESTAMP = datetime.utcnow()
+            # 4. Insert Verified Case Study into Database
+            case_study = CaseStudy(
+                course_id=course_id,
+                title=review_result.get("title", "Verified Live Financial Case Study"),
+                description=review_result.get("description", "Daily verified financial news scenario."),
+                scenario_text=review_result.get("scenario_text", ""),
+                exhibits_html=review_result.get("exhibits_html", ""),
+                questions_json=review_result.get("questions", [])
+            )
+            db.add(case_study)
+            db.commit()
+            db.refresh(case_study)
 
-        return {
-            "status": "success",
-            "message": "Senior Financial Analyst Agent approved and ingested daily live news case study.",
-            "ingested": True,
-            "case_study_id": case_study.id,
-            "title": case_study.title,
-            "relevance_score": review_result.get("financial_relevance_score", 90),
-            "next_ingestion_allowed_after": (_LAST_INGESTION_TIMESTAMP + timedelta(hours=24)).isoformat()
-        }
+            # Update last ingestion timestamp
+            global _LAST_INGESTION_TIMESTAMP
+            _LAST_INGESTION_TIMESTAMP = datetime.utcnow()
+
+            return {
+                "status": "success",
+                "message": "Senior Financial Analyst Agent approved and ingested daily live news case study.",
+                "ingested": True,
+                "case_study_id": case_study.id,
+                "title": case_study.title,
+                "relevance_score": review_result.get("financial_relevance_score", 90),
+                "next_ingestion_allowed_after": (_LAST_INGESTION_TIMESTAMP + timedelta(hours=24)).isoformat()
+            }
+        except Exception as err:
+            db.rollback()
+            print(f"[Live News Ingestion Error] Failed to commit case study: {err}")
+            return {
+                "status": "error",
+                "message": f"Database commit error: {str(err)}",
+                "ingested": False
+            }
