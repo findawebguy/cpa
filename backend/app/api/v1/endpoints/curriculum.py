@@ -115,11 +115,15 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
         # If week is locked, strip start_node_key so user cannot jump ahead
         node_key = first_node_key if status_str != "locked" else None
 
+        remediation_nodes = [n for n in nodes if n.node_type == "remediation"]
+
         res.append(SyllabusWeekResponse(
             id=s.id,
             week_number=s.week_number,
             title=s.title,
             node_count=node_count,
+            question_count=len(question_nodes),
+            remediation_count=len(remediation_nodes),
             status=status_str,
             start_node_key=node_key
         ))

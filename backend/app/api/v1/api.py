@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from backend.app.api.v1.endpoints import auth, curriculum, simulations, flashcards, analytics
+from backend.app.api.v1.endpoints import auth, curriculum, simulations, flashcards, analytics, study
 
 api_router = APIRouter()
 
@@ -8,3 +8,4 @@ api_router.include_router(curriculum.router, tags=["Adaptive Curriculum"])
 api_router.include_router(simulations.router, tags=["Task-Based Simulations"])
 api_router.include_router(flashcards.router, tags=["Flashcards"])
 api_router.include_router(analytics.router, tags=["Analytics & Diagnostics"])
+api_router.include_router(study.router, prefix="/study", tags=["Study Guides & Modules"])

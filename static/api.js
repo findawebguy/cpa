@@ -210,6 +210,16 @@ class CPAApiClient {
     async adminGetOverview() {
         return await this.request("/auth/admin/syllabus-overview");
     }
+
+    // Study & Prep Hub API
+    async getStudyModules(track = null) {
+        const query = track ? `?track=${track}` : "";
+        return await this.request(`/study/modules${query}`);
+    }
+
+    async getStudyModule(moduleId) {
+        return await this.request(`/study/modules/${moduleId}`);
+    }
 }
 
 window.cpaApi = new CPAApiClient();

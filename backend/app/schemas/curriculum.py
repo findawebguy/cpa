@@ -38,6 +38,8 @@ class SyllabusWeekResponse(BaseModel):
     week_number: int
     title: str
     node_count: int
+    question_count: int = 0
+    remediation_count: int = 0
     status: str  # "completed", "in-progress", "unlocked", "locked"
     start_node_key: Optional[str] = None
 

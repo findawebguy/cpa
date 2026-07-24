@@ -151,6 +151,9 @@
                     <button onclick="switchView('adaptive')" id="tab-adaptive" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-sky-50 text-sky-700 border border-sky-200">
                         <i class="fa-solid fa-route text-sky-600"></i> Adaptive Learn Path
                     </button>
+                    <button onclick="switchView('study')" id="tab-study" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+                        <i class="fa-solid fa-book-open-reader text-indigo-500"></i> Study & Prep Hub
+                    </button>
                     <button onclick="switchView('simulation')" id="tab-simulation" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100">
                         <i class="fa-solid fa-table-cells text-slate-500"></i> Task-Based Simulations (TBS)
                     </button>
@@ -249,6 +252,60 @@
 
             </div>
 
+        </div>
+
+        <!-- Study & Prep Hub View Container -->
+        <div id="view-study" class="hidden space-y-6 fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Sidebar: Study Modules List -->
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="p-4 bg-indigo-900 text-white flex justify-between items-center">
+                            <div>
+                                <h2 class="font-bold text-sm uppercase tracking-wider text-indigo-200">Study Modules</h2>
+                                <p class="text-xs text-indigo-300">FASB ASC / AICPA / IRC Codification</p>
+                            </div>
+                            <span class="bg-indigo-500/30 text-indigo-200 text-xs px-2.5 py-1 rounded-full font-mono border border-indigo-400/30">Official CPA</span>
+                        </div>
+                        <div class="divide-y divide-slate-100 max-h-[600px] overflow-y-auto" id="study-module-list">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Study Workspace -->
+                <div class="lg:col-span-8 flex flex-col space-y-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-[560px]" id="study-main-card">
+                        <div class="bg-slate-50 border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-1 rounded-full font-bold uppercase" id="study-track-badge">FAR MODULE</span>
+                                <span class="text-xs font-mono text-slate-500" id="study-codification-ref">FASB ASC 606</span>
+                            </div>
+                            <span class="text-xs text-slate-400 font-medium flex items-center gap-1">
+                                <i class="fa-regular fa-clock"></i>
+                                <span id="study-read-time">15 min read</span>
+                            </span>
+                        </div>
+                        <div class="p-6 flex-grow overflow-y-auto space-y-4" id="study-content-body">
+                            <!-- Reading Content Injected Here -->
+                        </div>
+                        <!-- Action Footer Bar -->
+                        <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+                            <div class="text-xs text-slate-500 font-medium">Ready to apply this standard?</div>
+                            <div class="flex items-center gap-2">
+                                <button id="study-tbs-btn" onclick="launchStudyTBS()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-table-cells"></i>
+                                    <span>Launch Linked Simulation (TBS)</span>
+                                </button>
+                                <button id="study-quiz-btn" onclick="launchStudyQuiz()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-question"></i>
+                                    <span>Take Practice Quiz</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Simulation View Container (TBS Exam Simulator) -->
@@ -707,6 +764,10 @@
             document.getElementById('audio-icon').className = isAudioMuted ? "fa-solid fa-volume-xmark text-slate-500 text-xs" : "fa-solid fa-volume-high text-slate-300 text-xs";
         }
 
+        // Global Study Module State
+        let currentStudyModule = null;
+        let studyModulesData = [];
+
         // View Switcher
         async function switchView(viewName) {
             playSound('click');
@@ -720,7 +781,7 @@
                 activeTab.className = "nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-sky-50 text-sky-700 border border-sky-200";
             }
 
-            ['adaptive', 'simulation', 'flashcards', 'analytics'].forEach(v => {
+            ['adaptive', 'study', 'simulation', 'flashcards', 'analytics'].forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 if (el) el.classList.add('hidden');
             });
@@ -736,7 +797,82 @@
                 await loadTBS();
             } else if (viewName === 'flashcards') {
                 await loadFlashcards();
+            } else if (viewName === 'study') {
+                await loadStudyModules();
             }
+        }
+
+        // Study & Prep Hub Logic
+        async function loadStudyModules() {
+            const list = document.getElementById('study-module-list');
+            list.innerHTML = '<div class="p-4 text-xs text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Loading study guides...</div>';
+            
+            try {
+                studyModulesData = await window.cpaApi.getStudyModules();
+                list.innerHTML = '';
+
+                studyModulesData.forEach((mod, idx) => {
+                    const div = document.createElement('div');
+                    const isSelected = currentStudyModule ? currentStudyModule.id === mod.id : idx === 0;
+                    if (isSelected) currentStudyModule = mod;
+
+                    div.className = `p-3.5 cursor-pointer transition ${isSelected ? 'bg-indigo-50 border-l-4 border-indigo-600' : 'hover:bg-slate-50'}`;
+                    div.onclick = () => {
+                        playSound('click');
+                        selectStudyModule(mod);
+                    };
+
+                    div.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-bold rounded font-mono">${mod.track}</span>
+                            <span class="text-[10px] text-slate-400 font-mono">${mod.codification_ref}</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-slate-800 mt-1">${mod.title}</h4>
+                        <p class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">${mod.subtitle}</p>
+                    `;
+                    list.appendChild(div);
+                });
+
+                if (currentStudyModule) {
+                    renderStudyModuleDetails(currentStudyModule);
+                }
+            } catch(e) {
+                list.innerHTML = `<div class="p-4 text-xs text-red-500">Failed to load study modules: ${e.message}</div>`;
+            }
+        }
+
+        function selectStudyModule(mod) {
+            currentStudyModule = mod;
+            loadStudyModules();
+        }
+
+        function renderStudyModuleDetails(mod) {
+            document.getElementById('study-track-badge').innerText = `${mod.track} STUDY MODULE`;
+            document.getElementById('study-codification-ref').innerText = mod.codification_ref;
+            document.getElementById('study-read-time').innerText = `${mod.estimated_minutes} min read`;
+            
+            const body = document.getElementById('study-content-body');
+            body.innerHTML = `
+                <div class="fade-in space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <h2 class="text-lg font-bold text-slate-900">${mod.title}</h2>
+                        <p class="text-xs text-slate-500 font-medium">${mod.subtitle}</p>
+                    </div>
+                    <div>${mod.reading_content_html}</div>
+                </div>
+            `;
+        }
+
+        function launchStudyTBS() {
+            if (!currentStudyModule || !currentStudyModule.linked_tbs_code) return;
+            switchView('simulation');
+            loadTBS(currentStudyModule.linked_tbs_code);
+        }
+
+        function launchStudyQuiz() {
+            if (!currentStudyModule || !currentStudyModule.linked_question_keys || currentStudyModule.linked_question_keys.length === 0) return;
+            switchView('adaptive');
+            renderNode(currentStudyModule.linked_question_keys[0]);
         }
 
         async function switchExamTrack(track) {
@@ -854,7 +990,7 @@
                             </div>
                             <div>
                                 <h3 class="text-xs font-bold ${isLocked ? 'text-slate-400' : 'text-slate-800'} leading-tight">${w.title}</h3>
-                                <p class="text-[10px] text-slate-400 mt-0.5">${w.node_count} Adaptive Modules ${isLocked ? '• Locked' : ''}</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">${w.question_count || w.node_count} Core Questions${w.remediation_count ? ` • ${w.remediation_count} Remediations` : ''} ${isLocked ? '• Locked' : ''}</p>
                             </div>
                         </div>
                         ${iconHtml}
