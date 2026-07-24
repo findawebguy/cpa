@@ -135,3 +135,23 @@ def get_llm_dataset_logs(
         "dataset": logs
     }
 
+
+@router.get("/live-news/feed")
+def get_live_news_feed(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Returns all ingested real-time financial market news case studies and feed metadata for QA auditing.
+    """
+    live_cases = db.query(CaseStudy).filter(
+        (CaseStudy.title.like("%LIVE%") | CaseStudy.title.like("%Federal Reserve%") | CaseStudy.description.like("%verified%"))
+    ).order_by(CaseStudy.id.desc()).all()
+    
+    return {
+        "status": "active",
+        "total_ingested_live_cases": len(live_cases),
+        "live_case_studies": live_cases
+    }
+
+

@@ -63,6 +63,13 @@ def get_case_studies():
                             <i class="fa-solid fa-arrow-up-right-from-square text-indigo-500 mr-1"></i><b>Source Article:</b> <a href="https://www.becker.com/blog/cpa/150-credit-hours-cpa-a-tale-of-courses-and-creative-counting" target="_blank" rel="noopener" class="text-blue-600 font-medium hover:underline">Becker CPA Blog - 150 Credit Hours CPA: A Tale of Courses and Creative Counting</a>
                         </div>
                     </div>
+                    <div class="p-4 border rounded-lg bg-amber-50/70 border-amber-200">
+                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-graduation-cap text-amber-600 mr-2"></i>Exhibit 2: 2025-2027 Emerging NASBA/AICPA UAA Alternative Pathway</h4>
+                        <p class="text-sm mt-2 font-serif">In May 2025, NASBA and the AICPA approved an alternative Uniform Accountancy Act (UAA) pathway permitting candidates with a bachelor's degree (120 semester hours) + 2 years of verified professional accounting experience to qualify for full CPA licensure. Multiple state boards (including Alaska, Alabama, and Arizona) are enacting this alternative path alongside the traditional 150-hour route starting in 2026/2027.</p>
+                        <div class="mt-3 pt-2 border-t text-xs text-slate-500">
+                            <i class="fa-solid fa-link text-slate-400 mr-1"></i><b>Source Authority:</b> <a href="https://www.becker.com/blog/cpa/150-credit-hours-cpa-a-tale-of-courses-and-creative-counting" target="_blank" rel="noopener" class="text-blue-600 font-medium hover:underline">NASBA/AICPA UAA Licensure Pipeline Updates</a>
+                        </div>
+                    </div>
                 </div>
             ''',
             "questions": [
@@ -75,6 +82,16 @@ def get_case_studies():
                     ],
                     "correct_idx": 0,
                     "explanation_html": "<p>According to Becker CPA licensure guidance, most state boards permit candidates to sit for the CPA exam upon earning 120 credit hours (bachelor's degree), but require 150 total semester hours (plus work experience) to issue the official CPA license.</p>"
+                },
+                {
+                    "question_text": "Based on Exhibit 2, how does the emerging 2025-2027 NASBA/AICPA Uniform Accountancy Act (UAA) alternative pathway modify traditional CPA licensure requirements?",
+                    "options": [
+                        {"text": "It permits candidates with a bachelor's degree (120 credit hours) to obtain licensure by completing 2 years of relevant work experience instead of 150 credit hours", "isCorrect": True},
+                        {"text": "It eliminates the CPA exam requirement for master's degree graduates", "isCorrect": False},
+                        {"text": "It requires 180 total credit hours for all future candidates starting 2026", "isCorrect": False}
+                    ],
+                    "correct_idx": 0,
+                    "explanation_html": "<p>Under the updated NASBA/AICPA UAA model approved in 2025, states are introducing an additional pathway allowing a 120-hour bachelor's degree paired with 2 years of professional experience to qualify for initial licensure.</p>"
                 }
             ]
         },

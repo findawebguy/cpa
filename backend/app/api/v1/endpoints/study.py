@@ -139,6 +139,73 @@ STUDY_MODULES_DB: List[StudyModule] = [
         """,
         linked_tbs_code="tbs-1",
         linked_question_keys=["q1_aud"]
+    ),
+    StudyModule(
+        id="reg-corporate-nol",
+        track="REG",
+        title="IRC § 172: Corporate Taxation & NOL Deductions",
+        subtitle="Post-2017 NOL 80% Taxable Income Cap, Indefinite Carryforward & M-1 Book-Tax Adjustments",
+        codification_ref="Internal Revenue Code § 172 / § 243",
+        estimated_minutes=20,
+        reading_content_html="""
+        <div class="space-y-4 text-slate-800 text-xs leading-relaxed">
+            <div class="p-4 bg-emerald-50 border-l-4 border-emerald-600 rounded-r-xl font-medium">
+                <h4 class="font-bold text-emerald-900 text-sm mb-1">TCJA Net Operating Loss (NOL) Rules (IRC § 172)</h4>
+                For corporate tax losses generated in tax years after Dec 31, 2017:
+                <ul class="list-disc pl-5 mt-1 space-y-1 font-mono text-[11px]">
+                    <li><b>80% Limitation:</b> NOL deductions cannot exceed 80% of taxable income (computed before the NOL deduction).</li>
+                    <li><b>Indefinite Carryforward:</b> Unused NOLs carry forward indefinitely (no 20-year expiration).</li>
+                    <li><b>No Carryback:</b> Carrybacks are eliminated (0-year carryback).</li>
+                </ul>
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm border-b pb-1 border-slate-200">Dividends Received Deduction (DRD) Tiers (IRC § 243)</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center font-mono text-[11px]">
+                <div class="p-3 bg-white border border-slate-200 rounded-lg">
+                    <div class="font-bold text-emerald-700 text-sm">50% DRD</div>
+                    <div class="text-slate-500">Ownership &lt; 20%</div>
+                </div>
+                <div class="p-3 bg-white border border-slate-200 rounded-lg">
+                    <div class="font-bold text-emerald-700 text-sm">65% DRD</div>
+                    <div class="text-slate-500">Ownership 20% to 80%</div>
+                </div>
+                <div class="p-3 bg-white border border-slate-200 rounded-lg">
+                    <div class="font-bold text-emerald-700 text-sm">100% DRD</div>
+                    <div class="text-slate-500">Affiliated Group (&ge; 80%)</div>
+                </div>
+            </div>
+        </div>
+        """,
+        linked_tbs_code="tbs-1",
+        linked_question_keys=["reg_w3_q0"]
+    ),
+    StudyModule(
+        id="reg-ethics-circular230",
+        track="REG",
+        title="Treasury Circular 230 & Professional Conduct",
+        subtitle="IRS Rules Governing Practice Before the IRS, Client Errors & Tax Preparer Penalties",
+        codification_ref="Treasury Circular 230 / IRC § 6694",
+        estimated_minutes=15,
+        reading_content_html="""
+        <div class="space-y-4 text-slate-800 text-xs leading-relaxed">
+            <div class="p-4 bg-purple-50 border-l-4 border-purple-600 rounded-r-xl font-medium">
+                <h4 class="font-bold text-purple-900 text-sm mb-1">Circular 230 § 10.21: Client Errors & Omissions</h4>
+                A practitioner who knows a client has not complied with tax laws or made an error on a return MUST advise the client promptly of the noncompliance/error and the consequences. The practitioner is <b>NOT</b> required or permitted to notify the IRS directly without client consent.
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm border-b pb-1 border-slate-200">Tax Return Position Standards (IRC § 6694)</h4>
+            <div class="space-y-2 font-mono text-[11px]">
+                <div class="p-2.5 bg-white border border-slate-200 rounded-lg">
+                    <b>Substantial Authority (&approx; 40% chance):</b> Required to avoid tax preparer penalties for undisclosed positions.
+                </div>
+                <div class="p-2.5 bg-white border border-slate-200 rounded-lg">
+                    <b>Reasonable Basis (&approx; 20% chance):</b> Minimum standard for adequately disclosed positions (Form 8275).
+                </div>
+            </div>
+        </div>
+        """,
+        linked_tbs_code="tbs-1",
+        linked_question_keys=["reg_w5_q0"]
     )
 ]
 
