@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CPA Exam Adaptive Learning Platform</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Production CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <!-- Chart.js for Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Canvas Confetti for Mastered Modules -->
@@ -17,30 +17,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        cpa: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            200: '#bae0fd',
-                            500: '#0284c7',
-                            600: '#0369a1',
-                            700: '#075985',
-                            800: '#0c4a6e',
-                            900: '#0a3651',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         .fade-in { animation: fadeIn 0.35s ease-out forwards; }
         .slide-up { animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -753,13 +729,27 @@
         }
 
         async function handleAnswer(selectedIndex, nodeId) {
-            document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
             const drawer = document.getElementById('feedback-drawer');
             const drawerContent = document.getElementById('feedback-content');
 
             try {
                 const res = await window.cpaApi.submitNodeAnswer(nodeId, selectedIndex, selectedConfidence);
                 await refreshUserProfile();
+
+                // Visually mark the selected option button
+                const selectedBtn = buttons[selectedIndex];
+                if (selectedBtn) {
+                    const icon = selectedBtn.querySelector('i');
+                    if (res.is_correct) {
+                        selectedBtn.className = "option-btn w-full text-left p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 font-bold transition flex items-center justify-between shadow";
+                        if (icon) icon.className = "fa-solid fa-circle-check text-emerald-600 text-lg";
+                    } else {
+                        selectedBtn.className = "option-btn w-full text-left p-3.5 rounded-xl border-2 border-red-500 bg-red-50 text-red-900 font-bold transition flex items-center justify-between shadow";
+                        if (icon) icon.className = "fa-solid fa-circle-xmark text-red-600 text-lg";
+                    }
+                }
 
                 drawer.classList.remove('hidden');
 

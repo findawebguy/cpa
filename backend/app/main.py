@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -41,6 +41,12 @@ static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
     app.mount("/cpa/static", StaticFiles(directory=static_dir), name="cpa_static")
+
+@app.get("/favicon.ico")
+@app.get("/cpa/favicon.ico")
+def get_favicon():
+    # Return 204 No Content for favicon to prevent 404 console errors
+    return Response(status_code=204)
 
 @app.get("/")
 @app.get("/cpa")
