@@ -264,3 +264,16 @@ def reset_user_progress(
     db.commit()
     return {"status": "success", "message": "User study progress and syllabus state successfully reset for testing."}
 
+@router.post("/admin/reseed")
+def admin_reseed_curriculum(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Admin: Drop and re-create all curriculum data so the live DB picks up init_db.py changes.
+    Wipes progress since node IDs change.
+    """
+    from backend.app.db.init_db import reseed_curriculum
+    reseed_curriculum(db)
+    return {"status": "success", "message": "Curriculum data fully re-seeded from init_db.py."}
+

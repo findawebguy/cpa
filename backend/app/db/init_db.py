@@ -2,9 +2,26 @@ from sqlalchemy.orm import Session
 from backend.app.db.session import engine, Base, SessionLocal
 from backend.app.core.security import get_password_hash
 from backend.app.models.user import User
-from backend.app.models.curriculum import Course, Syllabus, LearningNode
-from backend.app.models.simulation import TBSScenario
+from backend.app.models.curriculum import Course, Syllabus, LearningNode, UserProgress
+from backend.app.models.simulation import TBSScenario, TBSAttempt
 from backend.app.models.flashcard import Flashcard
+
+
+def reseed_curriculum(db: Session):
+    """Drop and re-create all curriculum data (courses, syllabi, nodes, flashcards, TBS scenarios).
+    Preserves user accounts but wipes progress since node IDs change."""
+    print("RESEED: Wiping curriculum data...")
+    db.query(UserProgress).delete()
+    db.query(TBSAttempt).delete()
+    db.query(LearningNode).delete()
+    db.query(Flashcard).delete()
+    db.query(TBSScenario).delete()
+    db.query(Syllabus).delete()
+    db.query(Course).delete()
+    db.commit()
+    print("RESEED: Curriculum wiped. Re-seeding...")
+    init_db(db)
+    print("RESEED: Complete.")
 
 def init_db(db: Session):
     Base.metadata.create_all(bind=engine)

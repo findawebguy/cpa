@@ -878,14 +878,14 @@
                         </div>
                     `;
                 } else if (node.node_type === "end") {
+                    // Record end node visit on server to mark week as completed
+                    try {
+                        await window.cpaApi.visitNode(nodeId);
+                    } catch(visitErr) {
+                        console.warn("Could not record end node visit:", visitErr);
+                    }
+
                     confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-                    
-                    const nextWeekMap = {
-                        "finish_w1": "far_w2_q1",
-                        "finish_aud": "aud_w2_q1",
-                        "finish_reg": "reg_w2_q1"
-                    };
-                    const nextWeekNode = nextWeekMap[nodeId] || "far_w2_q1";
 
                     body.innerHTML = `
                         <div class="fade-in text-center py-10 space-y-4 my-auto">
@@ -895,9 +895,9 @@
                             <h2 class="text-2xl font-bold text-slate-900">${node.concept_name}</h2>
                             <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">${node.remediation_html || node.scenario_content || ''}</p>
                             <div class="pt-4 flex justify-center gap-3">
-                                <button onclick="renderNode('${nextWeekNode}')" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
-                                    <span>Proceed to Week 2 Modules</span>
-                                    <i class="fa-solid fa-arrow-right"></i>
+                                <button onclick="switchView('syllabus')" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check"></i>
+                                    <span>Return to Syllabus</span>
                                 </button>
                                 <button onclick="switchView('simulation')" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 shadow transition">
                                     Launch Task Simulation (TBS)

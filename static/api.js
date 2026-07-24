@@ -183,6 +183,20 @@ class CPAApiClient {
             method: "POST"
         });
     }
+
+    // Record visiting an end node (marks week as completed)
+    async visitNode(nodeKey) {
+        return await this.request(`/nodes/${nodeKey}/visit`, {
+            method: "POST"
+        });
+    }
+
+    // Admin: Re-seed curriculum data
+    async reseedCurriculum() {
+        return await this.request("/auth/admin/reseed", {
+            method: "POST"
+        });
+    }
 }
 
 window.cpaApi = new CPAApiClient();

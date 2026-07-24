@@ -50,7 +50,7 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
     
     # Get all nodes user has passed / mastered
     user_progresses = db.query(UserProgress).filter(UserProgress.user_id == current_user.id).all()
-    mastered_node_ids = {p.node_id for p in user_progresses if p.mastery_level >= 60.0 or p.streak_days >= 1}
+    mastered_node_ids = {p.node_id for p in user_progresses if p.mastery_level >= 60.0}
     attempted_node_ids = {p.node_id for p in user_progresses}
 
     # Check if user has passed TBS for this track (score >= 75%)
@@ -71,10 +71,9 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
         question_nodes = [n for n in nodes if n.node_type == "question"]
         end_nodes = [n for n in nodes if n.node_type == "end"]
 
-        # A week is completed ONLY if:
-        # 1. An "end" node (e.g. finish_w1) for that week has been reached & recorded in user_progress, OR
-        # 2. All core question nodes in the week have been mastered, OR
-        # 3. TBS for that track has been passed.
+        # A week is completed ONLY if the user has reached an "end" node for that week.
+        # The end node UserProgress record is created via POST /nodes/{key}/visit.
+        # Fallback: all question nodes mastered (mastery >= 60) OR TBS passed for week 1.
         end_node_reached = any(n.id in attempted_node_ids for n in end_nodes)
         all_questions_mastered = (len(question_nodes) > 0 and all(n.id in mastered_node_ids for n in question_nodes))
 
@@ -105,6 +104,39 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
             start_node_key=node_key
         ))
     return res
+
+
+@router.post("/nodes/{node_key}/visit")
+def visit_node(
+    node_key: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Record that a user visited a node (used for 'end' nodes to mark week completion)."""
+    node = db.query(LearningNode).filter(LearningNode.node_key == node_key).first()
+    if not node:
+        raise HTTPException(status_code=404, detail=f"Node key '{node_key}' not found")
+
+    # Only allow recording visits for end nodes
+    if node.node_type != "end":
+        return {"status": "skipped", "message": "Visit recording only applies to end nodes."}
+
+    # Check if already recorded
+    existing = db.query(UserProgress).filter(
+        UserProgress.user_id == current_user.id,
+        UserProgress.node_id == node.id
+    ).first()
+    if not existing:
+        progress = UserProgress(
+            user_id=current_user.id,
+            node_id=node.id,
+            mastery_level=100.0,  # End node = mastered
+            streak_days=1
+        )
+        db.add(progress)
+        db.commit()
+
+    return {"status": "success", "message": f"End node '{node_key}' visit recorded."}
 
 @router.get("/nodes/{node_key}", response_model=LearningNodeResponse)
 def get_node(node_key: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
