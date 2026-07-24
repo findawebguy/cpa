@@ -32,6 +32,7 @@
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -52,6 +53,22 @@
                     }
                 }
             }
+        }
+
+        // Initialize Theme from LocalStorage or System Preference
+        (function() {
+            const savedTheme = localStorage.getItem('cpa_theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('cpa_theme', isDark ? 'dark' : 'light');
         }
     </script>
     <style>
@@ -78,97 +95,9 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         /* ==========================================================================
-           PURE CSS DARK MODE SYSTEM (HIGH CONTRAST & LEGIBILITY HARDENED)
-           1. Respects browser prefers-color-scheme: dark by default
-           2. Allows manual CSS toggle switch (#theme-toggle checkbox) without JS
+           CLASS-BASED DARK & LIGHT MODE STYLING SYSTEM
            ========================================================================== */
 
-        :root {
-            --dark-bg-main: #0b0f19;
-            --dark-bg-card: #1e293b;
-            --dark-bg-subtle: #0f172a;
-            --dark-text-bright: #f8fafc;
-            --dark-text-subtle: #cbd5e1;
-            --dark-text-muted: #94a3b8;
-            --dark-border: #334155;
-            --dark-border-light: #475569;
-        }
-
-        /* 1. Default Browser Dark Preference */
-        @media (prefers-color-scheme: dark) {
-            body { background-color: var(--dark-bg-main) !important; color: var(--dark-text-bright) !important; }
-            .bg-slate-50, .bg-slate-100 { background-color: var(--dark-bg-main) !important; }
-            .bg-white { background-color: var(--dark-bg-card) !important; color: var(--dark-text-bright) !important; }
-            
-            /* Text Legibility Rules */
-            .text-slate-900, .text-slate-800, .text-slate-700, .text-gray-900, .text-gray-800 { color: var(--dark-text-bright) !important; }
-            .text-slate-600, .text-slate-500, .text-gray-700, .text-gray-600 { color: var(--dark-text-subtle) !important; }
-            .text-slate-400, .text-slate-300, .text-gray-500, .text-gray-400 { color: var(--dark-text-muted) !important; }
-            
-            /* Syllabus Accordion & Locked Items */
-            .opacity-60, .opacity-50, .opacity-40 { opacity: 0.85 !important; }
-            .border-slate-200, .border-slate-300, .border-slate-100, .border-gray-200 { border-color: var(--dark-border) !important; }
-            
-            /* Inactive Nav Tabs & Sub-header */
-            .bg-sky-50, .bg-sky-50\/80, .bg-sky-50\/50 { background-color: #0369a1 !important; color: #ffffff !important; }
-            .bg-slate-50\/50, .bg-slate-100\/50, .bg-slate-100\/80, .bg-slate-50, .bg-slate-100 { background-color: #0f172a !important; }
-            .text-sky-700, .text-sky-600 { color: #38bdf8 !important; }
-            .border-sky-200 { border-color: #0284c7 !important; }
-            .hover\:bg-slate-100:hover { background-color: #334155 !important; color: #ffffff !important; }
-            .hover\:bg-sky-50\/50:hover, .hover\:bg-slate-50:hover { background-color: #0f172a !important; }
-
-            .shadow-sm, .shadow-md, .shadow-lg { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4) !important; }
-            .theme-moon-icon { display: none !important; }
-            .theme-sun-icon { display: inline-block !important; }
-        }
-
-        /* 2. Manual Checkbox Toggle Overrides (Pure CSS :has Selector) */
-        :root:has(#theme-toggle:checked) body { background-color: var(--dark-bg-main) !important; color: var(--dark-text-bright) !important; }
-        :root:has(#theme-toggle:checked) .bg-slate-50, 
-        :root:has(#theme-toggle:checked) .bg-slate-100 { background-color: var(--dark-bg-main) !important; }
-        :root:has(#theme-toggle:checked) .bg-white { background-color: var(--dark-bg-card) !important; color: var(--dark-text-bright) !important; }
-
-        :root:has(#theme-toggle:checked) .text-slate-900,
-        :root:has(#theme-toggle:checked) .text-slate-800,
-        :root:has(#theme-toggle:checked) .text-slate-700,
-        :root:has(#theme-toggle:checked) .text-gray-900,
-        :root:has(#theme-toggle:checked) .text-gray-800 { color: var(--dark-text-bright) !important; }
-
-        :root:has(#theme-toggle:checked) .text-slate-600,
-        :root:has(#theme-toggle:checked) .text-slate-500,
-        :root:has(#theme-toggle:checked) .text-gray-700,
-        :root:has(#theme-toggle:checked) .text-gray-600 { color: var(--dark-text-subtle) !important; }
-
-        :root:has(#theme-toggle:checked) .text-slate-400,
-        :root:has(#theme-toggle:checked) .text-slate-300,
-        :root:has(#theme-toggle:checked) .text-gray-500,
-        :root:has(#theme-toggle:checked) .text-gray-400 { color: var(--dark-text-muted) !important; }
-
-        :root:has(#theme-toggle:checked) .opacity-60,
-        :root:has(#theme-toggle:checked) .opacity-50,
-        :root:has(#theme-toggle:checked) .opacity-40 { opacity: 0.85 !important; }
-
-        :root:has(#theme-toggle:checked) .border-slate-200,
-        :root:has(#theme-toggle:checked) .border-slate-300,
-        :root:has(#theme-toggle:checked) .border-slate-100,
-        :root:has(#theme-toggle:checked) .border-gray-200 { border-color: var(--dark-border) !important; }
-
-        :root:has(#theme-toggle:checked) .bg-sky-50,
-        :root:has(#theme-toggle:checked) .bg-sky-50\/80,
-        :root:has(#theme-toggle:checked) .bg-sky-50\/50 { background-color: #0369a1 !important; color: #ffffff !important; }
-        :root:has(#theme-toggle:checked) .bg-slate-50\/50,
-        :root:has(#theme-toggle:checked) .bg-slate-100\/50,
-        :root:has(#theme-toggle:checked) .bg-slate-100\/80,
-        :root:has(#theme-toggle:checked) .bg-slate-50,
-        :root:has(#theme-toggle:checked) .bg-slate-100 { background-color: #0f172a !important; }
-        :root:has(#theme-toggle:checked) .text-sky-700,
-        :root:has(#theme-toggle:checked) .text-sky-600 { color: #38bdf8 !important; }
-        :root:has(#theme-toggle:checked) .border-sky-200 { border-color: #0284c7 !important; }
-        :root:has(#theme-toggle:checked) .hover\:bg-slate-100:hover { background-color: #334155 !important; color: #ffffff !important; }
-        :root:has(#theme-toggle:checked) .hover\:bg-sky-50\/50:hover,
-        :root:has(#theme-toggle:checked) .hover\:bg-slate-50:hover { background-color: #0f172a !important; }
-
-        :root:has(#theme-toggle:checked) .shadow-sm,
         :root:has(#theme-toggle:checked) .shadow-md,
         :root:has(#theme-toggle:checked) .shadow-lg { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4) !important; }
         :root:has(#theme-toggle:checked) .theme-moon-icon { display: none !important; }
@@ -240,12 +169,12 @@
                         </div>
                     </div>
 
-                    <!-- Pure CSS Theme Toggle Icon Button -->
-                    <label for="theme-toggle" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700/80 flex items-center justify-center text-slate-300 transition border border-slate-700/60 cursor-pointer" title="Toggle Light / Dark Mode">
-                        <i class="fa-solid fa-moon text-sky-400 theme-moon-icon text-xs"></i>
-                        <i class="fa-solid fa-sun text-amber-400 theme-sun-icon text-xs hidden"></i>
+                    <!-- Theme Toggle Icon Button -->
+                    <button onclick="toggleTheme()" id="theme-btn" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700/80 flex items-center justify-center text-slate-300 transition border border-slate-700/60" title="Toggle Light / Dark Mode">
+                        <i class="fa-solid fa-moon text-sky-400 dark:hidden text-xs"></i>
+                        <i class="fa-solid fa-sun text-amber-400 hidden dark:inline-block text-xs"></i>
                         <span class="sr-only">Toggle Theme</span>
-                    </label>
+                    </button>
 
                     <!-- Audio Toggle Icon Button -->
                     <button onclick="toggleAudio()" id="audio-btn" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700/80 flex items-center justify-center text-slate-300 transition border border-slate-700/60" title="Toggle Sound Effects">
@@ -1492,12 +1421,15 @@
                 const selectedBtn = buttons[selectedIndex];
                 if (selectedBtn) {
                     const icon = selectedBtn.querySelector('i');
+                    const textSpan = selectedBtn.querySelector('span:last-child');
                     if (res.is_correct) {
-                        selectedBtn.className = "option-btn w-full text-left p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 font-bold transition flex items-center justify-between shadow";
-                        if (icon) icon.className = "fa-solid fa-circle-check text-emerald-600 text-lg";
+                        selectedBtn.className = "option-btn w-full text-left p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-900/90 text-white font-bold transition flex items-center justify-between shadow";
+                        if (textSpan) textSpan.className = "text-xs text-white font-bold leading-relaxed";
+                        if (icon) icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
                     } else {
-                        selectedBtn.className = "option-btn w-full text-left p-3.5 rounded-xl border-2 border-red-500 bg-red-50 text-red-900 font-bold transition flex items-center justify-between shadow";
-                        if (icon) icon.className = "fa-solid fa-circle-xmark text-red-600 text-lg";
+                        selectedBtn.className = "option-btn w-full text-left p-3.5 rounded-xl border-2 border-red-500 bg-red-900/90 text-white font-bold transition flex items-center justify-between shadow";
+                        if (textSpan) textSpan.className = "text-xs text-white font-bold leading-relaxed";
+                        if (icon) icon.className = "fa-solid fa-circle-xmark text-red-400 text-lg";
                     }
                 }
 

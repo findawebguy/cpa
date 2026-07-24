@@ -40,6 +40,22 @@
                 }
             }
         }
+
+        // Initialize Theme from LocalStorage or System Preference
+        (function() {
+            const savedTheme = localStorage.getItem('cpa_theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('cpa_theme', isDark ? 'dark' : 'light');
+        }
     </script>
     <style>
         .fade-in { animation: fadeIn 0.35s ease-out forwards; }
@@ -105,6 +121,19 @@
             .hover\:bg-slate-100:hover { background-color: #334155 !important; color: #ffffff !important; }
             .hover\:bg-sky-50\/50:hover, .hover\:bg-slate-50:hover { background-color: #0f172a !important; }
 
+            /* Option Selection & Feedback Drawers High Contrast Dark Mode */
+            .bg-emerald-50, .bg-emerald-50\/90 { background-color: #064e3b !important; border-color: #10b981 !important; color: #ecfdf5 !important; }
+            .text-emerald-900, .text-emerald-800, .text-emerald-700 { color: #a7f3d0 !important; }
+            .text-emerald-600 { color: #34d399 !important; }
+
+            .bg-red-50, .bg-red-50\/90 { background-color: #7f1d1d !important; border-color: #f87171 !important; color: #fef2f2 !important; }
+            .text-red-900, .text-red-800, .text-red-700 { color: #fca5a5 !important; }
+            .text-red-600 { color: #f87171 !important; }
+
+            .bg-amber-50, .bg-amber-50\/90 { background-color: #451a03 !important; border-color: #f59e0b !important; color: #fffbeb !important; }
+            .text-amber-900, .text-amber-800, .text-amber-700 { color: #fde68a !important; }
+            .text-amber-600 { color: #fbbf24 !important; }
+
             .shadow-sm, .shadow-md, .shadow-lg { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4) !important; }
             .theme-moon-icon { display: none !important; }
             .theme-sun-icon { display: inline-block !important; }
@@ -149,6 +178,27 @@
         :root:has(#theme-toggle:checked) .bg-slate-100\/80,
         :root:has(#theme-toggle:checked) .bg-slate-50,
         :root:has(#theme-toggle:checked) .bg-slate-100 { background-color: #0f172a !important; }
+
+        :root:has(#theme-toggle:checked) .bg-emerald-50,
+        :root:has(#theme-toggle:checked) .bg-emerald-50\/90 { background-color: #064e3b !important; border-color: #10b981 !important; color: #ecfdf5 !important; }
+        :root:has(#theme-toggle:checked) .text-emerald-900,
+        :root:has(#theme-toggle:checked) .text-emerald-800,
+        :root:has(#theme-toggle:checked) .text-emerald-700 { color: #a7f3d0 !important; }
+        :root:has(#theme-toggle:checked) .text-emerald-600 { color: #34d399 !important; }
+
+        :root:has(#theme-toggle:checked) .bg-red-50,
+        :root:has(#theme-toggle:checked) .bg-red-50\/90 { background-color: #7f1d1d !important; border-color: #f87171 !important; color: #fef2f2 !important; }
+        :root:has(#theme-toggle:checked) .text-red-900,
+        :root:has(#theme-toggle:checked) .text-red-800,
+        :root:has(#theme-toggle:checked) .text-red-700 { color: #fca5a5 !important; }
+        :root:has(#theme-toggle:checked) .text-red-600 { color: #f87171 !important; }
+
+        :root:has(#theme-toggle:checked) .bg-amber-50,
+        :root:has(#theme-toggle:checked) .bg-amber-50\/90 { background-color: #451a03 !important; border-color: #f59e0b !important; color: #fffbeb !important; }
+        :root:has(#theme-toggle:checked) .text-amber-900,
+        :root:has(#theme-toggle:checked) .text-amber-800,
+        :root:has(#theme-toggle:checked) .text-amber-700 { color: #fde68a !important; }
+        :root:has(#theme-toggle:checked) .text-amber-600 { color: #fbbf24 !important; }
         :root:has(#theme-toggle:checked) .text-sky-700,
         :root:has(#theme-toggle:checked) .text-sky-600 { color: #38bdf8 !important; }
         :root:has(#theme-toggle:checked) .border-sky-200 { border-color: #0284c7 !important; }
