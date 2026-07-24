@@ -20,8 +20,10 @@ class CPAApiClient {
         this.token = token;
         if (token) {
             localStorage.setItem("cpa_jwt_token", token);
+            document.cookie = `cpa_jwt_token=${token}; path=/; max-age=2592000; SameSite=Lax`;
         } else {
             localStorage.removeItem("cpa_jwt_token");
+            document.cookie = `cpa_jwt_token=; path=/; max-age=0`;
         }
     }
 
@@ -95,6 +97,31 @@ class CPAApiClient {
         return await this.request("/auth/user/profile");
     }
 
+    async migrateGuestSession(guestProgress = [], tbsCode = null, tbsRows = null) {
+        return await this.request("/auth/migrate-guest-session", {
+            method: "POST",
+            body: JSON.stringify({
+                guest_progress: guestProgress,
+                tbs_code: tbsCode,
+                tbs_rows: tbsRows
+            })
+        });
+    }
+
+    async generateQRSession() {
+        return await this.request("/auth/qr-session", {
+            method: "POST"
+        });
+    }
+
+    async qrLogin(qrToken) {
+        const res = await this.request(`/auth/qr-login?qr_token=${encodeURIComponent(qrToken)}`);
+        if (res.access_token) {
+            this.setToken(res.access_token);
+        }
+        return res;
+    }
+
     // Curriculum API
     async getCourses() {
         return await this.request("/courses");
@@ -129,7 +156,7 @@ class CPAApiClient {
 
     // Flashcards API
     async getFlashcards(domain = "FAR") {
-        return await this.request(`/flashcards?domain=${domain}`);
+        return await.request(`/flashcards?domain=${domain}`);
     }
 
     async rateFlashcard(cardId, rating) {
