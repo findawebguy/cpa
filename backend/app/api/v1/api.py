@@ -1,3 +1,4 @@
+import backend.app.db.base
 from fastapi import APIRouter
 from backend.app.api.v1.endpoints import auth, curriculum, simulations, flashcards, analytics, study, case_studies
 

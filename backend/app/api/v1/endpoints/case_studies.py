@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.app.db.session import get_db
@@ -86,19 +86,23 @@ def submit_case_study(
     )
 
 
+from backend.app.schemas.case_study import CaseStudyResponse, CaseStudySubmitRequest, CaseStudySubmitResponse, LiveNewsIngestionRequest
+
 @router.post("/live-news/trigger-daily-ingestion")
 def trigger_daily_live_news_ingestion(
-    raw_feed: dict = None,
-    api_key: str = "",
+    body: Optional[LiveNewsIngestionRequest] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Triggers the Senior Financial Analyst Agent (NVIDIA NIM DeepSeek-R1 / Llama-3.1-Nemotron-70B)
+    Triggers the Senior Financial Analyst Agent (NVIDIA NIM)
     to review daily market news and insert into the database ONLY if approved.
     Enforces a strict 24-hour rate limit (once daily at most).
     """
     from backend.app.services.live_news_ingestion import LiveNewsIngestionService
+    
+    raw_feed = body.raw_feed if body and body.raw_feed else None
+    api_key = body.api_key if body and body.api_key else ""
     
     if not raw_feed:
         raw_feed = {

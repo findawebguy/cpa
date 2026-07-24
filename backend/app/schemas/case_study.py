@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 class CaseQuestionBase(BaseModel):
     question_text: str
@@ -34,3 +34,8 @@ class CaseStudySubmitResponse(BaseModel):
     score: float
     results: dict[int, dict]  # map of question_id -> {"is_correct": bool, "correct_idx": int}
     message: str
+
+class LiveNewsIngestionRequest(BaseModel):
+    raw_feed: Optional[Dict[str, Any]] = None
+    api_key: Optional[str] = ""
+
