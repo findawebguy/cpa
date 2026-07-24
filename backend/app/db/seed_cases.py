@@ -13,14 +13,14 @@ def get_case_studies():
                         <h4 class="font-bold text-slate-800"><i class="fa-solid fa-file-invoice-dollar text-blue-500 mr-2"></i>Exhibit 1: Cloud Subscription Contract</h4>
                         <p class="text-sm mt-2">On October 1, 2026, Apex signed a 12-month cloud hosting contract with Client A for $120,000, receiving the full amount in cash upfront. The services are provided evenly over the 12 months.</p>
                         <div class="mt-3 pt-2 border-t text-xs text-slate-500">
-                            <i class="fa-solid fa-link text-slate-400 mr-1"></i><b>Source Authority:</b> <a href="https://asc.fasb.org/" target="_blank" rel="noopener" class="text-blue-600 hover:underline">FASB ASC 606 Revenue Recognition Standard</a>
+                            <i class="fa-solid fa-link text-slate-400 mr-1"></i><b>Source Authority:</b> <a href="https://asc.fasb.org/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">FASB ASC 606 Revenue Recognition Standard</a>
                         </div>
                     </div>
                     <div class="p-4 border rounded-lg bg-slate-50">
                         <h4 class="font-bold text-slate-800"><i class="fa-solid fa-file-signature text-green-500 mr-2"></i>Exhibit 2: Equipment Lease Agreement</h4>
                         <p class="text-sm mt-2">On January 1, 2026, Apex entered into a 5-year lease for servers. The servers have a useful life of 5 years. The present value of lease payments is $200,000, and the fair value of the servers is $210,000.</p>
                         <div class="mt-3 pt-2 border-t text-xs text-slate-500">
-                            <i class="fa-solid fa-link text-slate-400 mr-1"></i><b>Source Authority:</b> <a href="https://asc.fasb.org/" target="_blank" rel="noopener" class="text-blue-600 hover:underline">FASB ASC 842 Leases Codification</a>
+                            <i class="fa-solid fa-link text-slate-400 mr-1"></i><b>Source Authority:</b> <a href="https://asc.fasb.org/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">FASB ASC 842 Leases Codification</a>
                         </div>
                     </div>
                 </div>
@@ -60,14 +60,14 @@ def get_case_studies():
                         <h4 class="font-bold text-slate-800"><i class="fa-solid fa-newspaper text-indigo-500 mr-2"></i>Exhibit 1: CPA Licensure 150-Hour Credit Rule Guide</h4>
                         <p class="text-sm mt-2">State boards of accountancy require 150 semester hours of college credit to obtain a CPA license. While 120 hours are generally required to sit for the exam, 150 hours (including specific accounting and business concentrations) are required for full licensure.</p>
                         <div class="mt-3 pt-2 border-t text-xs text-slate-500">
-                            <i class="fa-solid fa-arrow-up-right-from-square text-indigo-500 mr-1"></i><b>Source Article:</b> <a href="https://www.becker.com/blog/cpa/150-credit-hours-cpa-a-tale-of-courses-and-creative-counting" target="_blank" rel="noopener" class="text-blue-600 font-medium hover:underline">Becker CPA Blog - 150 Credit Hours CPA: A Tale of Courses and Creative Counting</a>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-indigo-500 mr-1"></i><b>Source Article:</b> <a href="https://www.becker.com/blog/cpa/150-credit-hours-cpa-a-tale-of-courses-and-creative-counting" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-medium hover:underline">Becker CPA Blog - 150 Credit Hours CPA: A Tale of Courses and Creative Counting</a>
                         </div>
                     </div>
                     <div class="p-4 border rounded-lg bg-amber-50/70 border-amber-200">
                         <h4 class="font-bold text-amber-900"><i class="fa-solid fa-graduation-cap text-amber-600 mr-2"></i>Exhibit 2: 2025-2027 Emerging NASBA/AICPA UAA Alternative Pathway</h4>
                         <p class="text-sm mt-2 font-serif">In May 2025, NASBA and the AICPA approved an alternative Uniform Accountancy Act (UAA) pathway permitting candidates with a bachelor's degree (120 semester hours) + 2 years of verified professional accounting experience to qualify for full CPA licensure. Multiple state boards (including Alaska, Alabama, and Arizona) are enacting this alternative path alongside the traditional 150-hour route starting in 2026/2027.</p>
                         <div class="mt-3 pt-2 border-t text-xs text-slate-500">
-                            <i class="fa-solid fa-link text-slate-400 mr-1"></i><b>Source Authority:</b> <a href="https://www.becker.com/blog/cpa/150-credit-hours-cpa-a-tale-of-courses-and-creative-counting" target="_blank" rel="noopener" class="text-blue-600 font-medium hover:underline">NASBA/AICPA UAA Licensure Pipeline Updates</a>
+                            <i class="fa-solid fa-link text-slate-400 mr-1"></i><b>Source Authority:</b> <a href="https://www.becker.com/blog/cpa/150-credit-hours-cpa-a-tale-of-courses-and-creative-counting" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-medium hover:underline">NASBA/AICPA UAA Licensure Pipeline Updates</a>
                         </div>
                     </div>
                 </div>
@@ -106,7 +106,7 @@ def get_case_studies():
                         <h4 class="font-bold text-slate-800"><i class="fa-solid fa-clipboard-check text-indigo-500 mr-2"></i>Exhibit 1: Internal Control Interview Memo</h4>
                         <p class="text-sm mt-2">The company CFO recently bypassed standard authorization procedures to approve a $500,000 wire transfer to an off-shore vendor without dual signatures. Controls over inventory counts were also waived for two regional warehouses due to staffing shortages.</p>
                         <div class="mt-3 pt-2 border-t text-xs text-slate-500">
-                            <i class="fa-solid fa-link text-slate-400 mr-1"></i><b>Source Authority:</b> <a href="https://www.coso.org/" target="_blank" rel="noopener" class="text-blue-600 hover:underline">COSO Internal Control Integrated Framework</a>
+                            <i class="fa-solid fa-link text-slate-400 mr-1"></i><b>Source Authority:</b> <a href="https://www.coso.org/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">COSO Internal Control Integrated Framework</a>
                         </div>
                     </div>
                 </div>
@@ -138,7 +138,7 @@ def get_case_studies():
                         </div>
                         <p class="text-xs text-slate-700 leading-relaxed">Central bank interest rate decisions have increased discount rates used in fair value cash flow models. Commercial real estate property values in urban sectors have declined 12% following recent macroeconomic shifts.</p>
                         <div class="mt-3 pt-2 border-t text-xs text-slate-500">
-                            <i class="fa-solid fa-arrow-up-right-from-square text-blue-500 mr-1"></i><b>Live Source:</b> <a href="https://www.federalreserve.gov/monetarypolicy.htm" target="_blank" rel="noopener" class="text-blue-600 font-medium hover:underline">Federal Reserve Monetary Policy & Economic Statements</a>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-blue-500 mr-1"></i><b>Live Source:</b> <a href="https://www.federalreserve.gov/monetarypolicy.htm" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-medium hover:underline">Federal Reserve Monetary Policy & Economic Statements</a>
                         </div>
                     </div>
                 </div>

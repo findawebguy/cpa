@@ -206,7 +206,7 @@ Published Date: {raw_news_item.get('published_at', 'N/A')}
                         </div>
                         <p class="text-xs text-slate-700 leading-relaxed">{summary}</p>
                         <div class="mt-3 pt-2 border-t text-xs text-slate-500">
-                            <i class="fa-solid fa-arrow-up-right-from-square text-blue-500 mr-1"></i><b>Source Article:</b> <a href="{url}" target="_blank" rel="noopener" class="text-blue-600 font-medium hover:underline">{title}</a>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-blue-500 mr-1"></i><b>Source Article:</b> <a href="{url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-medium hover:underline">{title}</a>
                         </div>
                     </div>
                 </div>
