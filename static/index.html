@@ -678,8 +678,23 @@
                 list.innerHTML = '';
                 
                 syllabusWeeks.forEach((w) => {
-                    const isCurrentNodeWeek = currentNodeId.includes(`w${w.week_number}`) || (w.week_number === 1 && (currentNodeId === 'q1' || currentNodeId === 'q2' || currentNodeId === 'q3'));
+                    const isCurrentNodeWeek = currentNodeId.includes(`w${w.week_number}`) || (w.week_number === 1 && (currentNodeId === 'q1' || currentNodeId === 'q2' || currentNodeId === 'q3' || currentNodeId === 'q1_easy' || currentNodeId === 'rem1' || currentNodeId === 'rem2' || currentNodeId === 'rem3'));
                     const div = document.createElement('div');
+                    
+                    let circleStyle = "bg-slate-200 text-slate-700 font-bold";
+                    let iconHtml = '<i class="fa-solid fa-lock-open text-sky-500 text-xs"></i>';
+                    
+                    if (isCurrentNodeWeek) {
+                        circleStyle = "bg-sky-600 text-white font-bold";
+                        iconHtml = '<i class="fa-solid fa-circle-play text-sky-600 text-sm"></i>';
+                    } else if (w.status === "completed") {
+                        circleStyle = "bg-emerald-100 text-emerald-800 font-bold";
+                        iconHtml = '<i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>';
+                    } else if (w.status === "in-progress") {
+                        circleStyle = "bg-sky-100 text-sky-800 font-bold";
+                        iconHtml = '<i class="fa-solid fa-circle-play text-sky-500 text-sm"></i>';
+                    }
+
                     div.className = `p-3.5 flex items-center justify-between transition cursor-pointer ${isCurrentNodeWeek ? 'bg-sky-50/80 border-l-4 border-sky-600' : 'hover:bg-slate-50'}`;
                     
                     if (w.start_node_key) {
@@ -692,7 +707,7 @@
 
                     div.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-full ${isCurrentNodeWeek ? 'bg-sky-600 text-white' : 'bg-emerald-100 text-emerald-800 font-bold'} flex items-center justify-center font-bold text-xs">
+                            <div class="w-7 h-7 rounded-full ${circleStyle} flex items-center justify-center font-bold text-xs">
                                 ${w.week_number}
                             </div>
                             <div>
@@ -700,7 +715,7 @@
                                 <p class="text-[10px] text-slate-500 mt-0.5">${w.node_count} Adaptive Modules</p>
                             </div>
                         </div>
-                        <i class="fa-solid ${isCurrentNodeWeek ? 'fa-circle-play text-sky-600' : 'fa-circle-check text-emerald-500'} text-sm"></i>
+                        ${iconHtml}
                     `;
                     list.appendChild(div);
                 });

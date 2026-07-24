@@ -52,30 +52,27 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
     attempted_node_ids = {p.node_id for p in user_progress_nodes}
 
     res = []
-    max_unlocked_week = 1
+    prev_week_completed = True
 
-    # Calculate progression level
     for idx, s in enumerate(syllabi):
         nodes = db.query(LearningNode).filter(LearningNode.syllabus_id == s.id).order_by(LearningNode.id).all()
         node_count = len(nodes)
         first_node_key = nodes[0].node_key if nodes else None
 
-        # Check if user has answered any node in this week
-        has_attempted = any(n.id in attempted_node_ids for n in nodes)
-        if has_attempted:
-            max_unlocked_week = max(max_unlocked_week, s.week_number + 1)
+        attempted_count = sum(1 for n in nodes if n.id in attempted_node_ids)
+        is_completed = (node_count > 0 and attempted_count >= node_count)
+        is_attempted = (attempted_count > 0)
 
-    for s in syllabi:
-        nodes = db.query(LearningNode).filter(LearningNode.syllabus_id == s.id).order_by(LearningNode.id).all()
-        node_count = len(nodes)
-        first_node_key = nodes[0].node_key if nodes else None
-
-        # Week 1 is always unlocked; subsequent weeks unlock if user has progressed or reached week threshold
-        if s.week_number <= max_unlocked_week:
-            status_str = "in-progress" if s.week_number == 1 else "unlocked"
-        else:
-            # Allow access to all weeks with nodes
+        if is_completed:
+            status_str = "completed"
+        elif is_attempted or idx == 0:
+            status_str = "in-progress"
+        elif prev_week_completed:
             status_str = "unlocked"
+        else:
+            status_str = "unlocked"  # Open access for flexible practice
+
+        prev_week_completed = is_completed or is_attempted
 
         res.append(SyllabusWeekResponse(
             id=s.id,
