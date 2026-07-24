@@ -12,6 +12,26 @@ from backend.app.api.v1.endpoints.auth import get_current_user
 
 router = APIRouter()
 
+
+def _record_end_node_completion(db: Session, user: User, end_node: LearningNode) -> bool:
+    """Idempotently record that a user reached an 'end' node, marking its week complete.
+    Returns True if a new record was created."""
+    existing = db.query(UserProgress).filter(
+        UserProgress.user_id == user.id,
+        UserProgress.node_id == end_node.id
+    ).first()
+    if existing:
+        return False
+    db.add(UserProgress(
+        user_id=user.id,
+        node_id=end_node.id,
+        mastery_level=100.0,  # End node = mastered
+        streak_days=1
+    ))
+    db.commit()
+    return True
+
+
 @router.get("/courses", response_model=List[CourseResponse])
 def get_courses(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     courses = db.query(Course).all()
@@ -121,20 +141,29 @@ def visit_node(
     if node.node_type != "end":
         return {"status": "skipped", "message": "Visit recording only applies to end nodes."}
 
-    # Check if already recorded
-    existing = db.query(UserProgress).filter(
-        UserProgress.user_id == current_user.id,
-        UserProgress.node_id == node.id
-    ).first()
-    if not existing:
-        progress = UserProgress(
-            user_id=current_user.id,
-            node_id=node.id,
-            mastery_level=100.0,  # End node = mastered
-            streak_days=1
-        )
-        db.add(progress)
-        db.commit()
+    # Guard: an end node may only mark a week complete if the user has actually
+    # attempted at least one question node in that same week. The node graph
+    # already forces a correct answer to every gating question before an end
+    # node is reachable; this blocks crafted requests that jump straight to an
+    # end node with zero work.
+    week_question_ids = {
+        n.id for n in db.query(LearningNode).filter(
+            LearningNode.syllabus_id == node.syllabus_id,
+            LearningNode.node_type == "question"
+        ).all()
+    }
+    if week_question_ids:
+        attempted = db.query(UserProgress).filter(
+            UserProgress.user_id == current_user.id,
+            UserProgress.node_id.in_(week_question_ids)
+        ).first()
+        if not attempted:
+            return {
+                "status": "skipped",
+                "message": "Cannot complete a week before attempting its questions.",
+            }
+
+    _record_end_node_completion(db, current_user, node)
 
     return {"status": "success", "message": f"End node '{node_key}' visit recorded."}
 
@@ -188,6 +217,15 @@ def submit_node_answer(
         selected_option_idx=body.index,
         confidence_level=body.confidence
     )
+
+    # Completion is driven by correctly answering the final gating question: if a
+    # correct answer routes to an 'end' node, record week completion server-side now.
+    # A wrong answer never routes to an end node (see init_db routing), so a week
+    # can only be completed by answering its questions correctly.
+    if is_correct and next_key:
+        next_node = db.query(LearningNode).filter(LearningNode.node_key == next_key).first()
+        if next_node and next_node.node_type == "end":
+            _record_end_node_completion(db, current_user, next_node)
 
     return NodeSubmissionResult(
         is_correct=is_correct,

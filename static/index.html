@@ -715,14 +715,20 @@
             document.querySelectorAll('.nav-tab').forEach(tab => {
                 tab.className = "nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100";
             });
-            document.getElementById(`tab-${viewName}`).className = "nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-sky-50 text-sky-700 border border-sky-200";
+            const activeTab = document.getElementById(`tab-${viewName}`);
+            if (activeTab) {
+                activeTab.className = "nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-sky-50 text-sky-700 border border-sky-200";
+            }
 
-            document.getElementById('view-adaptive').classList.add('hidden');
-            document.getElementById('view-simulation').classList.add('hidden');
-            document.getElementById('view-flashcards').classList.add('hidden');
-            document.getElementById('view-analytics').classList.add('hidden');
+            ['adaptive', 'simulation', 'flashcards', 'analytics'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.classList.add('hidden');
+            });
 
-            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            const activeView = document.getElementById(`view-${viewName}`);
+            if (activeView) {
+                activeView.classList.remove('hidden');
+            }
 
             if (viewName === 'analytics') {
                 await loadAnalytics();
@@ -945,7 +951,7 @@
                             <h2 class="text-2xl font-bold text-slate-900">${node.concept_name}</h2>
                             <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">${node.remediation_html || node.scenario_content || ''}</p>
                             <div class="pt-4 flex justify-center gap-3">
-                                <button onclick="switchView('syllabus')" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                                <button onclick="switchView('adaptive')" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
                                     <i class="fa-solid fa-list-check"></i>
                                     <span>Return to Syllabus</span>
                                 </button>

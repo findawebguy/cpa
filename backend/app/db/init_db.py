@@ -145,8 +145,8 @@ def init_db(db: Session):
         node_type="remediation",
         scenario_content="Why Accrual Accounting Controls GAAP",
         remediation_html="Cash basis accounting only looks at bank accounts. But cash timing can easily distort true company profitability!<br>GAAP requires <b>Accrual Basis</b>:<br>• <b>Revenue</b> is recorded when earned (work done).<br>• <b>Expenses</b> are matched in the exact period they help generate that revenue.<br>If you do work now and get paid later, you create an <b>Accounts Receivable</b> asset immediately.",
-        next_correct_key="q3",
-        next_incorrect_key="q3"
+        next_correct_key="q2",
+        next_incorrect_key="q2"
     ))
 
     # Q3 Node
@@ -176,8 +176,8 @@ def init_db(db: Session):
         node_type="remediation",
         scenario_content="Calculating Time Elapsed Deferrals",
         remediation_html="Prepaid Insurance is an Asset because it represents future protection paid in advance. As time passes, that asset is 'used up' and turns into an Expense.<br><br><b>Calculation Breakdown:</b><br>$12,000 ÷ 12 months = $1,000 per month.<br>Months passed from Oct 1 to Dec 31 = 3 months.<br>Expense = 3 x $1,000 = <b>$3,000</b>.",
-        next_correct_key="finish_w1",
-        next_incorrect_key="finish_w1"
+        next_correct_key="q3",
+        next_incorrect_key="q3"
     ))
 
     # Finish W1 Node
@@ -220,7 +220,7 @@ def init_db(db: Session):
         node_type="remediation",
         scenario_content="Operating Cash Flow Formula Rules (ASC 230)",
         remediation_html="<b>Indirect Method Cash Flow Steps:</b><br>1. Start with <b>Net Income</b>.<br>2. Add back non-cash expenses (<b>Depreciation & Amortization</b>).<br>3. Subtract asset increases (e.g. Accounts Receivable, Inventory).<br>4. Add liability increases (e.g. Accounts Payable, Accrued Expenses).",
-        next_correct_key="far_w2_q2",
+        next_correct_key="far_w2_q1",
         next_incorrect_key="far_w2_q1"
     ))
 
@@ -238,7 +238,18 @@ def init_db(db: Session):
         correct_answer_idx=0,
         remediation_html="Debt principal maturing within 12 months or operating cycle must be presented under Current Liabilities.",
         next_correct_key="far_w2_end",
-        next_incorrect_key="far_w2_rem1"
+        next_incorrect_key="far_w2_rem2"
+    ))
+
+    db.add(LearningNode(
+        syllabus_id=w2_id,
+        node_key="far_w2_rem2",
+        concept_name="Balance Sheet Classification Breakdown",
+        node_type="remediation",
+        scenario_content="Current vs Non-Current Liability Rules (ASC 210)",
+        remediation_html="<b>Current vs Non-Current Classification:</b><br>1. A liability is <b>Current</b> if it matures within 12 months (or the operating cycle, if longer).<br>2. For installment debt, split it: the principal due within 12 months is a <b>Current Liability</b>; the remainder is <b>Long-Term</b>.<br>3. Example: a $50,000 note repaid $10,000/year &rarr; $10,000 current + $40,000 long-term.",
+        next_correct_key="far_w2_q2",
+        next_incorrect_key="far_w2_q2"
     ))
 
     db.add(LearningNode(
@@ -354,7 +365,7 @@ def init_db(db: Session):
         correct_answer_idx=0,
         remediation_html="The 5 COSO components are Control Environment, Risk Assessment, Control Activities, Information & Communication, and Monitoring Activities (Mnemonic: CRIME).",
         next_correct_key="finish_aud",
-        next_incorrect_key="finish_aud"
+        next_incorrect_key="q1_aud"
     ))
     db.add(LearningNode(
         syllabus_id=aud_syllabus_map["aud_w1"],
@@ -379,7 +390,7 @@ def init_db(db: Session):
             correct_answer_idx=0,
             remediation_html=f"Review GAAS audit guidelines for Week {w_num}.",
             next_correct_key=f"aud_w{w_num}_end",
-            next_incorrect_key=f"aud_w{w_num}_end"
+            next_incorrect_key=f"aud_w{w_num}_q1"
         ))
         db.add(LearningNode(
             syllabus_id=s_id,
@@ -428,7 +439,7 @@ def init_db(db: Session):
         correct_answer_idx=0,
         remediation_html="IRC § 102 excludes gifts/inheritances from gross income. IRC § 103 excludes municipal bond interest.",
         next_correct_key="finish_reg",
-        next_incorrect_key="finish_reg"
+        next_incorrect_key="q1_reg"
     ))
     db.add(LearningNode(
         syllabus_id=reg_syllabus_map["reg_w1"],
@@ -453,7 +464,7 @@ def init_db(db: Session):
             correct_answer_idx=0,
             remediation_html=f"Review IRC rules for Week {w_num}.",
             next_correct_key=f"reg_w{w_num}_end",
-            next_incorrect_key=f"reg_w{w_num}_end"
+            next_incorrect_key=f"reg_w{w_num}_q1"
         ))
         db.add(LearningNode(
             syllabus_id=s_id,

@@ -88,10 +88,59 @@ A full-stack, adaptive CPA Exam preparation and simulation platform built for th
 
 ## 🧪 Running the Test Suite
 
-Run the full automated pytest suite (Auth, Adaptive Engine, Curriculum, TBS Scoring):
+Run the full automated pytest suite (Auth, Adaptive Engine, Curriculum, TBS Scoring, and week-completion gating):
 ```bash
 python -m pytest backend/tests -v
 ```
+
+The `test_week_gating.py` suite locks in a critical invariant: an incorrect answer can **never** reach a week's `end` node, so a week can only be completed by answering every gating question correctly (verified by a graph walk across FAR, AUD, and REG).
+
+### Live End-to-End QA
+
+`qa_test_live.py` runs a full end-to-end walkthrough (login → reseed → reset → progress through weeks) against a running server. It accepts a base URL (defaults to production) and **mutates the target database** (reseeds + resets), so only run it against dev/QA or a freshly deployed release:
+```bash
+python qa_test_live.py http://localhost:8005          # local dev server
+python qa_test_live.py https://demo.i-te.am/cpa       # production (or omit arg / set CPA_BASE_URL)
+```
+Expect `QA TEST SUITE COMPLETE: 47 PASSED, 0 FAILED`.
+
+---
+
+## 🚢 Production Deployment
+
+Production runs at **https://demo.i-te.am/cpa/** and deploys from the `main` branch. The API is mounted on both `/api/v1` and `/cpa/api/v1` so it works at the root locally and behind the `/cpa` reverse-proxy subpath in production.
+
+1. **Push to `main`:**
+   ```bash
+   git add -A
+   git commit -m "Describe the change"
+   git push origin main
+   ```
+
+2. **Pull the latest code on the production server:**
+   ```bash
+   cd /path/to/cpa && git pull origin main
+   ```
+
+3. **Restart the application process.** The Uvicorn server runs **without `--reload`**, so it must be restarted to load new code (restart your systemd unit / process manager, or rebuild the container):
+   ```bash
+   docker-compose up -d --build
+   ```
+
+4. **Re-seed the curriculum — required whenever `backend/app/db/init_db.py` changes** (node graph, questions, week structure). `init_db()` is a no-op when data already exists, so use the admin reseed endpoint. ⚠️ This wipes user progress because node IDs are regenerated:
+   ```bash
+   TOKEN=$(curl -s -X POST https://demo.i-te.am/cpa/api/v1/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"student@cpa.com","password":"pass123"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+
+   curl -s -X POST https://demo.i-te.am/cpa/api/v1/auth/admin/reseed \
+     -H "Authorization: Bearer $TOKEN"
+   ```
+
+5. **Verify the release** with the live QA suite:
+   ```bash
+   python qa_test_live.py https://demo.i-te.am/cpa
+   ```
 
 ---
 
@@ -103,20 +152,8 @@ python -m pytest backend/tests -v
 - Click **`Mark Done`** next to any week to instantly complete that module without needing accounting knowledge.
 - Click **`Reset Progress`** to clear all attempts and start testing from Week 1.
 
-### 2. Updating / Re-seeding Production Database
-When deploying updates to production, re-seed the live database without server downtime via API:
-
-```bash
-# 1. Obtain Auth Token
-TOKEN=$(curl -s -X POST https://demo.i-te.am/cpa/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"student@cpa.com","password":"pass123"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
-
-# 2. Trigger Full Re-seed (Drops & Re-populates Curriculum from init_db.py)
-curl -s -X POST https://demo.i-te.am/cpa/api/v1/auth/admin/reseed \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json"
-```
+### 2. Updating / Re-seeding the Production Database
+Curriculum changes in `init_db.py` require re-seeding the live database via the admin API. See **[🚢 Production Deployment](#-production-deployment)** (step 4) for the full command and caveats.
 
 ---
 
