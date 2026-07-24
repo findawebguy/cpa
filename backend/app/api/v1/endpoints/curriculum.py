@@ -132,40 +132,31 @@ def visit_node(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Record that a user visited a node (used for 'end' nodes to mark week completion)."""
+    """UX acknowledgement that the user reached an 'end' node (drives the client's
+    completion screen / confetti). It deliberately does NOT grant week completion:
+    completion is recorded server-side only when the final gating question is
+    answered correctly (see submit_node_answer). This prevents a crafted visit --
+    e.g. POST /visit on an end node after a wrong answer -- from completing a week
+    that was not actually earned."""
     node = db.query(LearningNode).filter(LearningNode.node_key == node_key).first()
     if not node:
         raise HTTPException(status_code=404, detail=f"Node key '{node_key}' not found")
 
-    # Only allow recording visits for end nodes
     if node.node_type != "end":
-        return {"status": "skipped", "message": "Visit recording only applies to end nodes."}
+        return {"status": "skipped", "message": "Visit acknowledgement only applies to end nodes."}
 
-    # Guard: an end node may only mark a week complete if the user has actually
-    # attempted at least one question node in that same week. The node graph
-    # already forces a correct answer to every gating question before an end
-    # node is reachable; this blocks crafted requests that jump straight to an
-    # end node with zero work.
-    week_question_ids = {
-        n.id for n in db.query(LearningNode).filter(
-            LearningNode.syllabus_id == node.syllabus_id,
-            LearningNode.node_type == "question"
-        ).all()
+    # Report whether this week was genuinely completed (recorded via a correct
+    # final answer), but never create the record here.
+    already_completed = db.query(UserProgress).filter(
+        UserProgress.user_id == current_user.id,
+        UserProgress.node_id == node.id
+    ).first() is not None
+
+    return {
+        "status": "success",
+        "completed": already_completed,
+        "message": f"End node '{node_key}' acknowledged.",
     }
-    if week_question_ids:
-        attempted = db.query(UserProgress).filter(
-            UserProgress.user_id == current_user.id,
-            UserProgress.node_id.in_(week_question_ids)
-        ).first()
-        if not attempted:
-            return {
-                "status": "skipped",
-                "message": "Cannot complete a week before attempting its questions.",
-            }
-
-    _record_end_node_completion(db, current_user, node)
-
-    return {"status": "success", "message": f"End node '{node_key}' visit recorded."}
 
 @router.get("/nodes/{node_key}", response_model=LearningNodeResponse)
 def get_node(node_key: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

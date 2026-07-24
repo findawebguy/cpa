@@ -113,13 +113,39 @@ def test_far_week2_end_to_end_gating(client):
     client.post("/api/v1/auth/user/reset")
 
 
-def test_visit_end_node_without_attempt_is_blocked(client):
-    """Crafted jump: visiting an end node without attempting any of the week's
-    questions must not record completion."""
+def test_visit_end_node_does_not_grant_completion(client):
+    """The /visit endpoint is a UX acknowledgement only -- it must never mark a
+    week complete. Crafted jumps to an end node (with zero work, or after only a
+    wrong answer) must leave the week incomplete."""
     client.post("/api/v1/auth/user/reset")
-    res = client.post("/api/v1/nodes/far_w3_end/visit")
-    assert res.json()["status"] == "skipped"
 
+    # (a) Zero work: jump straight to a week-3 end node.
+    res = client.post("/api/v1/nodes/far_w3_end/visit")
+    assert res.json()["completed"] is False
     syl = client.get("/api/v1/courses/FAR/syllabus").json()
     assert syl[2]["status"] != "completed"
+
+    # (b) After only a WRONG answer: attempt far_w3_q1 wrong, then visit the end.
+    client.post("/api/v1/nodes/far_w3_q1/submit", json={"index": 1, "confidence": "high"})
+    res = client.post("/api/v1/nodes/far_w3_end/visit")
+    assert res.json()["completed"] is False
+    syl = client.get("/api/v1/courses/FAR/syllabus").json()
+    assert syl[2]["status"] != "completed"
+
+    client.post("/api/v1/auth/user/reset")
+
+
+def test_correct_final_answer_completes_week_without_visit(client):
+    """Completion is earned by the correct final answer alone (submit-side),
+    with no /visit call needed."""
+    client.post("/api/v1/auth/user/reset")
+    # Reach + clear Week 1 so Week 3's gate isn't relevant; test Week 1 directly.
+    client.post("/api/v1/nodes/q1/submit", json={"index": 0, "confidence": "medium"})
+    client.post("/api/v1/nodes/q2/submit", json={"index": 1, "confidence": "medium"})
+    res = client.post("/api/v1/nodes/q3/submit", json={"index": 0, "confidence": "medium"})
+    assert res.json()["next_node_key"] == "finish_w1"
+
+    # No /visit call -- week must already be complete from the correct final answer.
+    syl = client.get("/api/v1/courses/FAR/syllabus").json()
+    assert syl[0]["status"] == "completed"
     client.post("/api/v1/auth/user/reset")
