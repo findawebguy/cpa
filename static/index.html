@@ -456,8 +456,13 @@
         </div>
     </div>
 
-    <!-- Async Frontend App Scripts -->
-    <script src="/static/api.js"></script>
+    <!-- Async Frontend App Scripts (supports both subpath /cpa/ and root /) -->
+    <script>
+        const scriptEl = document.createElement('script');
+        const isSubpath = window.location.pathname.startsWith('/cpa');
+        scriptEl.src = isSubpath ? '/cpa/static/api.js' : '/static/api.js';
+        document.body.appendChild(scriptEl);
+    </script>
     <script>
         // Global Application State
         let currentTrack = 'FAR';

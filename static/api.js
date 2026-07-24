@@ -1,6 +1,15 @@
 // CPA Exam Platform - Async REST API Client Module
 
-const API_BASE_URL = "/api/v1";
+// Automatically detect subpath for reverse proxies (e.g. /cpa or /)
+const getApiBaseUrl = () => {
+    const path = window.location.pathname || "";
+    if (path.startsWith("/cpa")) {
+        return "/cpa/api/v1";
+    }
+    return "/api/v1";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 class CPAApiClient {
     constructor() {

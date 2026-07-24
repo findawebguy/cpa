@@ -32,15 +32,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount API Router
+# Mount API Router on both /api/v1 and /cpa/api/v1 for reverse proxy subpath support
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(api_router, prefix="/cpa/api/v1")
 
-# Mount static files
+# Mount static files on both /static and /cpa/static
 static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static")
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    app.mount("/cpa/static", StaticFiles(directory=static_dir), name="cpa_static")
 
 @app.get("/")
+@app.get("/cpa")
+@app.get("/cpa/")
 def serve_index():
     index_path = os.path.join(static_dir, "index.html")
     if os.path.exists(index_path):
