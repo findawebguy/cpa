@@ -1107,7 +1107,7 @@
                                 ${node.remediation_html || ''}
                             </div>
                             <div class="pt-4 flex justify-end">
-                                <button onclick="renderNode('${node.next_correct_key || node.next_incorrect_key || 'q1'}')" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                                <button onclick="renderNode('${node.next_node_key || node.next_correct_key || node.next_incorrect_key || currentNodeId}')" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
                                     <span>Proceed to Practical Application</span>
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </button>
