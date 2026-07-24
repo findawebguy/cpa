@@ -45,6 +45,9 @@ def rate_flashcard(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if rating_in.rating.lower() not in {"easy", "medium", "hard", "mastered", "review"}:
+        raise HTTPException(status_code=400, detail="Invalid rating. Must be 'easy', 'medium', 'hard', 'mastered', or 'review'.")
+
     card = db.query(Flashcard).filter(Flashcard.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail="Flashcard not found")

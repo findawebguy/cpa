@@ -205,6 +205,10 @@ def submit_node_answer(
     if not node:
         raise HTTPException(status_code=404, detail=f"Node key '{node_key}' not found")
 
+    options = node.options_json or []
+    if node.node_type == "question" and (body.index < 0 or body.index >= len(options)):
+        raise HTTPException(status_code=400, detail=f"Option index {body.index} is out of bounds (0-{max(0, len(options)-1)})")
+
     is_correct, explanation, next_key, delta, new_mastery, meta = AdaptiveEngine.evaluate_submission(
         db=db,
         user=current_user,
