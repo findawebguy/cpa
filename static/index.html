@@ -110,7 +110,8 @@
             .border-slate-200, .border-slate-300, .border-slate-100, .border-gray-200 { border-color: var(--dark-border) !important; }
             
             /* Inactive Nav Tabs & Sub-header */
-            .bg-sky-50 { background-color: #0369a1 !important; color: #ffffff !important; }
+            .bg-sky-50, .bg-sky-50\/80, .bg-sky-50\/50 { background-color: #0369a1 !important; color: #ffffff !important; }
+            .bg-slate-50\/50, .bg-slate-100\/50, .bg-slate-100\/80, .bg-slate-50, .bg-slate-100 { background-color: #0f172a !important; }
             .text-sky-700, .text-sky-600 { color: #38bdf8 !important; }
             .border-sky-200 { border-color: #0284c7 !important; }
             .hover\:bg-slate-100:hover { background-color: #334155 !important; color: #ffffff !important; }
@@ -152,7 +153,14 @@
         :root:has(#theme-toggle:checked) .border-slate-100,
         :root:has(#theme-toggle:checked) .border-gray-200 { border-color: var(--dark-border) !important; }
 
-        :root:has(#theme-toggle:checked) .bg-sky-50 { background-color: #0369a1 !important; color: #ffffff !important; }
+        :root:has(#theme-toggle:checked) .bg-sky-50,
+        :root:has(#theme-toggle:checked) .bg-sky-50\/80,
+        :root:has(#theme-toggle:checked) .bg-sky-50\/50 { background-color: #0369a1 !important; color: #ffffff !important; }
+        :root:has(#theme-toggle:checked) .bg-slate-50\/50,
+        :root:has(#theme-toggle:checked) .bg-slate-100\/50,
+        :root:has(#theme-toggle:checked) .bg-slate-100\/80,
+        :root:has(#theme-toggle:checked) .bg-slate-50,
+        :root:has(#theme-toggle:checked) .bg-slate-100 { background-color: #0f172a !important; }
         :root:has(#theme-toggle:checked) .text-sky-700,
         :root:has(#theme-toggle:checked) .text-sky-600 { color: #38bdf8 !important; }
         :root:has(#theme-toggle:checked) .border-sky-200 { border-color: #0284c7 !important; }
@@ -1218,7 +1226,11 @@
                         iconHtml = '<i class="fa-solid fa-lock-open text-sky-500 text-xs"></i>';
                     }
 
-                    div.className = `p-3.5 flex items-center justify-between transition ${isLocked ? 'bg-slate-50/50 opacity-60 cursor-not-allowed' : (isCurrentNodeWeek ? 'bg-sky-50/80 border-l-4 border-sky-600 cursor-pointer' : 'hover:bg-slate-50 cursor-pointer')}`;
+                    const itemBgClass = isLocked ? 'bg-slate-900/60 text-slate-300 cursor-not-allowed' : (isCurrentNodeWeek ? 'bg-sky-600 text-white font-bold border-l-4 border-sky-300 cursor-pointer shadow-sm' : 'bg-slate-800/40 text-slate-200 hover:bg-slate-800 cursor-pointer');
+                    const titleTextClass = isLocked ? 'text-slate-400 font-medium' : (isCurrentNodeWeek ? 'text-white font-bold' : 'text-slate-200 font-bold');
+                    const descTextClass = isLocked ? 'text-slate-500' : (isCurrentNodeWeek ? 'text-sky-100' : 'text-slate-400');
+
+                    div.className = `p-3.5 flex items-center justify-between transition ${itemBgClass}`;
                     
                     if (!isLocked && w.start_node_key) {
                         div.onclick = () => {
@@ -1239,8 +1251,8 @@
                                 ${w.week_number}
                             </div>
                             <div>
-                                <h3 class="text-xs font-bold ${isLocked ? 'text-slate-400' : 'text-slate-800'} leading-tight">${w.title}</h3>
-                                <p class="text-[10px] text-slate-400 mt-0.5">${w.question_count || w.node_count} Core Questions${w.remediation_count ? ` • ${w.remediation_count} Remediations` : ''} ${isLocked ? '• Locked' : ''}</p>
+                                <h3 class="text-xs ${titleTextClass} leading-tight">${w.title}</h3>
+                                <p class="text-[10px] ${descTextClass} mt-0.5">${w.question_count || w.node_count} Core Questions${w.remediation_count ? ` • ${w.remediation_count} Remediations` : ''} ${isLocked ? '• Locked' : ''}</p>
                             </div>
                         </div>
                         ${iconHtml}
