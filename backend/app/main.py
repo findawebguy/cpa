@@ -1,3 +1,4 @@
+# Main application entry point - updated for AUD case studies
 import os
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware

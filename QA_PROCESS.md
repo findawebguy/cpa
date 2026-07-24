@@ -1,194 +1,88 @@
-# CPA Exam Platform - Comprehensive QA Testing Manual & Subagent Protocol
+# CPA Interactive Study Guide - QA Process
 
-This document outlines the end-to-end Quality Assurance (QA) testing protocol for the **CPA Exam Adaptive Learning & Task Simulation Platform**. It is designed for human QA engineers as well as autonomous QA agents/subagents running on remote machines.
+This document outlines the Quality Assurance (QA) testing process for the CPA Interactive Study Guide platform. Subagents executing these tests should perform both **Happy Path** (expected behavior) and **Non-Happy Path** (error handling, boundary conditions) testing.
 
----
+When executing these tests, agents should act as human users interacting with the frontend UI, but they may also inspect network requests (e.g., via browser devtools) to verify backend functionality.
 
-## 📋 System Architecture & Test Target
+**Objective**: Create detailed bug reports or actionable suggestions for any failures encountered during the process.
 
-- **Base URL (Local)**: `http://localhost:8005/api/v1` (or subpath `/cpa/api/v1`)
-- **Base URL (Live Demo)**: `https://demo.i-te.am/cpa/api/v1`
-- **Default Test User**: `student@cpa.com` / `pass123`
-- **Database Engine**: SQLite 3 (WAL mode) with SQLAlchemy 2.0 ORM
-
----
-
-## 🛠️ Environment Setup & Quick Verification
-
-### 1. Local Machine Setup
-```bash
-git clone https://github.com/findawebguy/cpa.git
-cd cpa
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8005
-```
-
-### 2. Run Automated Pytest Suite
-```bash
-python -m pytest backend/tests -v
-```
-*(All 16 unit/integration tests must pass cleanly).*
-
-### 3. Run Automated End-to-End Live QA Suite
-```bash
-$env:PYTHONIOENCODING='utf-8'; python qa_test_live.py
-```
-*(Executes 47 automated assertion checks against the target backend).*
+## Environment Setup
+- The application runs locally. Ensure the backend FastAPI server (`uvicorn backend.app.main:app --reload`) and frontend (serving `static/index.html`) are active.
+- Access the application via `http://localhost:8000` or the configured local domain (e.g., `http://127.0.0.1:8000`).
 
 ---
 
-## 🧪 Comprehensive QA Test Suites
+## 1. Authentication & Session Management
 
-### Suite 1: Authentication, QR Passkey Sync & Guest Session Migration
+### Happy Path
+- **Registration**: Register a new user with a valid email and password. Verify that the user is logged in automatically and the dashboard updates.
+- **Login**: Log in with an existing user (e.g., `student@cpa.com` / `pass123`). Verify successful login and data loading.
+- **Logout**: Click the "Log Out" button in the Settings modal. Verify the session clears and the UI returns to the guest state.
+- **Guest Migration**: Answer a few questions as a guest, then register an account. Verify that the guest progress (score, current week) migrates to the newly created account.
 
-#### 1.1 Standard Login & Registration
-- **Action**: Perform `POST /auth/login` with `{"email": "student@cpa.com", "password": "pass123"}`.
-- **Expected Outcome**: HTTP 200 returned with valid `access_token` JWT string.
-- **Header Check**: Subsequent requests must include `Authorization: Bearer <TOKEN>`.
-
-#### 1.2 QR Mobile Passkey Authentication
-- **Action**: 
-  1. Call `POST /auth/qr-session` to generate a desktop QR auth token.
-  2. Poll `GET /auth/qr-status?qr_token=<TOKEN>`.
-  3. Simulate mobile scan by calling `POST /auth/qr-login?qr_token=<TOKEN>` with user credentials.
-- **Expected Outcome**: Polling watcher returns `{"scanned": true, "access_token": "..."}`, automatically authenticating the desktop UI.
-
-#### 1.3 Guest LocalStorage Session Migration
-- **Action**: Perform guest attempts in local storage while logged out, then call `POST /auth/migrate-guest-session`.
-- **Expected Outcome**: Guest progress entries are merged into the user account in the database without data loss.
+### Non-Happy Path
+- **Invalid Login**: Attempt to log in with an incorrect password. Verify the UI displays an appropriate error message (e.g., "Incorrect email or password") and does not crash.
+- **Duplicate Registration**: Attempt to register an account with an email that already exists. Verify the UI gracefully handles the 400 Bad Request error.
+- **Session Expiry**: Simulate an expired JWT token (if possible) and attempt an authenticated action (like saving progress). Verify the app prompts the user to log in again rather than failing silently.
 
 ---
 
-### Suite 2: Sequential Week Progression & State Validation (Happy Path)
+## 2. Core Question Engine (Adaptive Track)
 
-#### 2.1 Syllabus Initial State
-- **Action**: Call `GET /courses/FAR/syllabus`.
-- **Expected Outcome**:
-  - Week 1: `status="in-progress"` or `"unlocked"`, `start_node_key="q1"`.
-  - Weeks 2–7: `status="locked"`, `start_node_key=null`.
-  - Node counts clearly indicate core questions and remediation branches (e.g. `3 Core Questions • 4 Remediations`).
+### Happy Path
+- **Answer Correctly**: Select the correct answer for a question. Verify the feedback is positive, confetti triggers, and the "Next Question" button navigates to the next logical node in the sequence.
+- **Answer Incorrectly**: Select an incorrect answer. Verify the UI displays the remediation view. Click "Proceed to Practical Application" and verify it navigates to a scaffolded/easier question or retries the concept.
+- **Completion**: Complete all questions in a given week. Verify the "Week Mastered" node appears and the Syllabus view reflects completion (e.g., Week 1 gets a green checkmark).
 
-#### 2.2 Core Question Progression (Happy Path)
-- **Action**:
-  1. Submit correct answer to `q1` (`index=0`, `confidence="high"`). Verify routing to `q2`.
-  2. Submit correct answer to `q2` (`index=1`, `confidence="medium"`). Verify routing to `q3`.
-  3. Submit correct answer to `q3` (`index=0`, `confidence="medium"`). Verify routing to `finish_w1`.
-  4. Call `POST /nodes/finish_w1/visit` to record end-node visit.
-- **Expected Outcome**:
-  - `GET /courses/FAR/syllabus` shows Week 1 `status="completed"`.
-  - Week 2 transitions to `status="unlocked"` with `start_node_key="far_w2_q1"`.
-  - Week 3+ remain strictly `status="locked"`.
+### Non-Happy Path
+- **Empty Submission**: Attempt to submit a question without selecting an option. Verify the UI prevents submission or alerts the user.
+- **Network Failure During Submission**: Simulate a network disconnect just before answering. Verify the UI handles the API error gracefully (e.g., "Failed to save progress") without crashing.
 
 ---
 
-### Suite 3: Adaptive Engine & Remediation Loops (Non-Happy Paths)
+## 3. Case Studies & Task-Based Simulations (TBS)
 
-#### 3.1 Overconfidence Penalty (High Confidence Error)
-- **Action**: Submit an incorrect answer to `q1` (`index=1`, `confidence="high"`).
-- **Expected Outcome**:
-  - `mastery_delta` is heavily penalized (`-15.0`).
-  - `confidence_evaluated` tag equals `"HIGH_OVERCONFIDENCE_ERROR"`.
-  - `next_node_key` routes to remediation breakdown `rem1`.
+### Happy Path
+- **Case Study Viewer**: Navigate to the "Case Studies" tab. Open a simulation. Verify the split-screen modal appears with exhibits on the left and questions on the right.
+- **Case Study Submission**: Answer the questions and submit. Verify that the results show correct/incorrect highlights, explanations are revealed, and the score updates.
+- **TBS Interactive Input**: Navigate to the "Task-Based Simulations (TBS)" tab. Add and remove journal entry rows. Input valid debits/credits. Verify the balance calculator updates accurately.
+- **TBS Submission**: Submit a fully balanced, correct journal entry. Verify positive feedback and score update.
 
-#### 3.2 Remediation & Scaffolded Question Branching
-- **Action**:
-  1. Fetch remediation node `GET /nodes/rem1`.
-  2. Verify `next_node_key` points to scaffolded practice question `q1_easy`.
-  3. Submit correct answer to `q1_easy` (`index=0`). Verify routing proceeds to core question `q2`.
-- **Non-Happy Verification**:
-  - Answering remediation nodes or `q1_easy` does **NOT** complete Week 1.
-  - Week 2 remains `status="locked"` until all core questions + end-node visit are completed.
-
-#### 3.3 Locked Week Click Protection
-- **Action**: Attempt to call `GET /nodes/far_w3_q1` while Week 3 is locked.
-- **Expected Outcome**:
-  - API returns HTTP 403 or strips sensitive fields.
-  - Frontend alerts user: *"Week 3 is locked! Complete all modules in Week 2 to unlock."*
+### Non-Happy Path
+- **Imbalanced TBS Entry**: Submit a journal entry where debits do not equal credits. Verify the system rejects it and alerts the user of the imbalance.
+- **Partial Case Study Submission**: Submit a case study with some questions left blank. Verify the system treats blank answers as incorrect but does not crash, or prompts the user to finish.
+- **Missing Exhibits**: If a case study lacks exhibits (data error), verify the UI handles the missing data gracefully (e.g., displaying "No exhibits provided").
 
 ---
 
-### Suite 4: Task-Based Simulations (TBS)
+## 4. Settings & Account Management
 
-#### 4.1 Fetching TBS Scenario
-- **Action**: Call `GET /tbs/tbs-1`.
-- **Expected Outcome**: Returns multi-exhibit scenario text, account list, and initial row template.
+### Happy Path
+- **Update Settings**: Open the Settings Modal. Change the "Target CPA Exam Date" and submit. Verify the UI updates and the data persists across a page reload.
+- **Change Password**: Enter a new password and save. Verify the update succeeds, and subsequent logins require the new password.
 
-#### 4.2 Submitting Journal Entries & Balance Validation
-- **Action**: Submit general journal rows to `POST /tbs/tbs-1/submit`.
-- **Expected Outcome**:
-  - Calculates total debits vs. credits.
-  - If total score &ge; 75.0%, marks TBS attempt as passed.
+### Non-Happy Path
+- **Invalid Password Update**: Attempt to change the password to a blank string or an invalid format. Verify the UI/API rejects it with a clear error message.
 
 ---
 
-### Suite 5: Admin & QA Overrides
+## 5. Admin Panel (Database Reseed)
 
-#### 5.1 Admin Syllabus Overview
-- **Action**: Call `GET /auth/admin/syllabus-overview`.
-- **Expected Outcome**: Returns complete matrix of all 3 course tracks (FAR, AUD, REG), displaying week numbers, titles, question counts, attempted counts, and completion status.
+### Happy Path
+- **Open Admin Panel**: Navigate to Settings > QA/Admin Panel.
+- **Reseed Database**: Click "Reseed Database". Acknowledge the critical warning. Verify the backend successfully rebuilds the curriculum and the frontend resets cleanly without infinite loading states.
 
-#### 5.2 Admin Module Completion Override
-- **Action**: Call `POST /auth/admin/complete-week` with `{"track": "FAR", "week_number": 2}`.
-- **Expected Outcome**:
-  - Creates UserProgress records for all nodes in Week 2.
-  - Marks Week 2 `completed` and unlocks Week 3 (`far_w3_q1`) without requiring manual question solving.
-
-#### 5.3 Reset Progress (QA Testing)
-- **Action**: Call `POST /auth/user/reset`.
-- **Expected Outcome**: Wipes user progress records and resets syllabus back to Week 1 initial state.
-
-#### 5.4 Full Curriculum Re-seed
-- **Action**: Call `POST /auth/admin/reseed`.
-- **Expected Outcome**: Drops and re-creates all course/syllabus/learning node tables from `init_db.py`, ensuring fresh curriculum data.
+### Non-Happy Path
+- **Unauthorized Access**: Attempt to call the `/api/v1/auth/admin/syllabus-overview` endpoint using a non-admin token (or standard student token). Verify it returns a 403 Forbidden.
 
 ---
 
-## 🤖 QA Subagent Execution & Bug Reporting Protocol
+## Reporting Guidelines for Subagents
 
-When autonomous subagents are executed on external machines to perform QA, subagents must follow this standard report format upon discovering a bug or regression:
-
-### Subagent Bug Report Template
-
-```markdown
-### 🐛 QA Bug Report
-
-**Test Suite**: [e.g., Suite 3 - Remediation Branching]
-**Target Environment**: [e.g., Live Server https://demo.i-te.am/cpa/ / Local localhost:8005]
-**Timestamp**: [YYYY-MM-DD HH:MM:SS UTC]
-
-#### Steps to Reproduce
-1. Log in as student@cpa.com.
-2. Submit incorrect answer to node `far_w2_q2`.
-3. Check `GET /courses/FAR/syllabus`.
-
-#### Expected Behavior
-Week 3 remains `status="locked"` and Week 2 remains `status="in-progress"`.
-
-#### Actual Behavior
-Week 2 marked `status="completed"` and Week 3 unlocked prematurely.
-
-#### API Log Trace / Raw Response
-```json
-{
-  "status_code": 200,
-  "response": { "week_number": 2, "status": "completed" }
-}
-```
-
-#### Proposed Fix / Root Cause Hypothesis
-Check line XX in `curriculum.py` for `all_questions_mastered` criteria.
-```
-
----
-
-## ✅ QA Checklist Summary
-
-- [ ] `pytest backend/tests -v` (16/16 Passed)
-- [ ] `qa_test_live.py` (47/47 Assertions Passed)
-- [ ] Auth & QR Passkey Sync Verified
-- [ ] Sequential Unlocking Enforced (Week N locked until Week N-1 complete)
-- [ ] Remediation Nodes Route to Scaffolded Questions (`q1_easy`, `q2_easy`, etc.)
-- [ ] Study & Prep Hub loads FASB ASC / AICPA / IRC Guides
-- [ ] Admin QA Panel overrides tested (`complete-week`, `reseed`)
+When logging a bug or suggestion:
+1. **Title**: Clear, concise summary of the issue.
+2. **Path**: Happy or Non-Happy.
+3. **Steps to Reproduce**: Exact sequence of clicks/inputs.
+4. **Expected vs. Actual Result**: What should have happened vs. what actually happened.
+5. **Logs**: Include frontend console errors or backend stack traces if applicable.
+6. **Suggested Fix**: (Optional) Provide code-level suggestions for resolving the issue.

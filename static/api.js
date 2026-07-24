@@ -177,6 +177,11 @@ class CPAApiClient {
         });
     }
 
+    // Analytics API
+    async getDiagnostics() {
+        return await this.request("/analytics/diagnostics");
+    }
+
     // Testing & QA Reset API
     async resetUserProgress() {
         return await this.request("/auth/user/reset", {
@@ -203,6 +208,23 @@ class CPAApiClient {
         return await this.request("/auth/admin/complete-week", {
             method: "POST",
             body: JSON.stringify({ track, week_number: weekNumber })
+        });
+    }
+
+    // --- CASE STUDIES ---
+
+    async getCaseStudies(courseId) {
+        return await this.request(`/cases/course/${courseId}`);
+    }
+
+    async getCaseDetails(caseId) {
+        return await this.request(`/cases/${caseId}`);
+    }
+
+    async submitCaseStudy(caseId, answers) {
+        return await this.request(`/cases/${caseId}/submit`, {
+            method: "POST",
+            body: JSON.stringify({ answers })
         });
     }
 
