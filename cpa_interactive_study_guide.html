@@ -92,143 +92,82 @@
             --dark-bg-card: #1e293b;
             --dark-bg-subtle: #0f172a;
             --dark-text-bright: #f8fafc;
-            --dark-text-subtle: #cbd5e1;
-            --dark-text-muted: #94a3b8;
-            --dark-border: #334155;
-            --dark-border-light: #475569;
+        /* ==========================================================================
+           CLASS-BASED DARK & LIGHT MODE STYLING SYSTEM
+           ========================================================================== */
+
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        /* 1. Default Browser Dark Preference */
-        @media (prefers-color-scheme: dark) {
-            body { background-color: var(--dark-bg-main) !important; color: var(--dark-text-bright) !important; }
-            .bg-slate-50, .bg-slate-100 { background-color: var(--dark-bg-main) !important; }
-            .bg-white { background-color: var(--dark-bg-card) !important; color: var(--dark-text-bright) !important; }
-            
-            /* Text Legibility Rules */
-            .text-slate-900, .text-slate-800, .text-slate-700, .text-gray-900, .text-gray-800 { color: var(--dark-text-bright) !important; }
-            .text-slate-600, .text-slate-500, .text-gray-700, .text-gray-600 { color: var(--dark-text-subtle) !important; }
-            .text-slate-400, .text-slate-300, .text-gray-500, .text-gray-400 { color: var(--dark-text-muted) !important; }
-            
-            /* Syllabus Accordion & Locked Items */
-            .opacity-60, .opacity-50, .opacity-40 { opacity: 0.85 !important; }
-            .border-slate-200, .border-slate-300, .border-slate-100, .border-gray-200 { border-color: var(--dark-border) !important; }
-            
-            /* Inactive Nav Tabs & Sub-header */
-            .bg-sky-50, .bg-sky-50\/80, .bg-sky-50\/50 { background-color: #0369a1 !important; color: #ffffff !important; }
-            .bg-slate-50\/50, .bg-slate-100\/50, .bg-slate-100\/80, .bg-slate-50, .bg-slate-100 { background-color: #0f172a !important; }
-            .text-sky-700, .text-sky-600 { color: #38bdf8 !important; }
-            .border-sky-200 { border-color: #0284c7 !important; }
-            .hover\:bg-slate-100:hover { background-color: #334155 !important; color: #ffffff !important; }
-            .hover\:bg-sky-50\/50:hover, .hover\:bg-slate-50:hover { background-color: #0f172a !important; }
-
-            /* Option Selection & Feedback Drawers High Contrast Dark Mode */
-            .bg-emerald-50, .bg-emerald-50\/90 { background-color: #064e3b !important; border-color: #10b981 !important; color: #ecfdf5 !important; }
-            .text-emerald-900, .text-emerald-800, .text-emerald-700 { color: #a7f3d0 !important; }
-            .text-emerald-600 { color: #34d399 !important; }
-
-            .bg-red-50, .bg-red-50\/90 { background-color: #7f1d1d !important; border-color: #f87171 !important; color: #fef2f2 !important; }
-            .text-red-900, .text-red-800, .text-red-700 { color: #fca5a5 !important; }
-            .text-red-600 { color: #f87171 !important; }
-
-            .bg-amber-50, .bg-amber-50\/90 { background-color: #451a03 !important; border-color: #f59e0b !important; color: #fffbeb !important; }
-            .text-amber-900, .text-amber-800, .text-amber-700 { color: #fde68a !important; }
-            .text-amber-600 { color: #fbbf24 !important; }
-
-            .shadow-sm, .shadow-md, .shadow-lg { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4) !important; }
-            .theme-moon-icon { display: none !important; }
-            .theme-sun-icon { display: inline-block !important; }
+        /* Dark Mode Overrides (Triggered when html.dark is present) */
+        html.dark body {
+            background-color: #0b0f19 !important;
+            color: #f8fafc !important;
         }
 
-        /* 2. Manual Checkbox Toggle Overrides (Pure CSS :has Selector) */
-        :root:has(#theme-toggle:checked) body { background-color: var(--dark-bg-main) !important; color: var(--dark-text-bright) !important; }
-        :root:has(#theme-toggle:checked) .bg-slate-50, 
-        :root:has(#theme-toggle:checked) .bg-slate-100 { background-color: var(--dark-bg-main) !important; }
-        :root:has(#theme-toggle:checked) .bg-white { background-color: var(--dark-bg-card) !important; color: var(--dark-text-bright) !important; }
-
-        :root:has(#theme-toggle:checked) .text-slate-900,
-        :root:has(#theme-toggle:checked) .text-slate-800,
-        :root:has(#theme-toggle:checked) .text-slate-700,
-        :root:has(#theme-toggle:checked) .text-gray-900,
-        :root:has(#theme-toggle:checked) .text-gray-800 { color: var(--dark-text-bright) !important; }
-
-        :root:has(#theme-toggle:checked) .text-slate-600,
-        :root:has(#theme-toggle:checked) .text-slate-500,
-        :root:has(#theme-toggle:checked) .text-gray-700,
-        :root:has(#theme-toggle:checked) .text-gray-600 { color: var(--dark-text-subtle) !important; }
-
-        :root:has(#theme-toggle:checked) .text-slate-400,
-        :root:has(#theme-toggle:checked) .text-slate-300,
-        :root:has(#theme-toggle:checked) .text-gray-500,
-        :root:has(#theme-toggle:checked) .text-gray-400 { color: var(--dark-text-muted) !important; }
-
-        :root:has(#theme-toggle:checked) .opacity-60,
-        :root:has(#theme-toggle:checked) .opacity-50,
-        :root:has(#theme-toggle:checked) .opacity-40 { opacity: 0.85 !important; }
-
-        :root:has(#theme-toggle:checked) .border-slate-200,
-        :root:has(#theme-toggle:checked) .border-slate-300,
-        :root:has(#theme-toggle:checked) .border-slate-100,
-        :root:has(#theme-toggle:checked) .border-gray-200 { border-color: var(--dark-border) !important; }
-
-        :root:has(#theme-toggle:checked) .bg-sky-50,
-        :root:has(#theme-toggle:checked) .bg-sky-50\/80,
-        :root:has(#theme-toggle:checked) .bg-sky-50\/50 { background-color: #0369a1 !important; color: #ffffff !important; }
-        :root:has(#theme-toggle:checked) .bg-slate-50\/50,
-        :root:has(#theme-toggle:checked) .bg-slate-100\/50,
-        :root:has(#theme-toggle:checked) .bg-slate-100\/80,
-        :root:has(#theme-toggle:checked) .bg-slate-50,
-        :root:has(#theme-toggle:checked) .bg-slate-100 { background-color: #0f172a !important; }
-
-        :root:has(#theme-toggle:checked) .bg-emerald-50,
-        :root:has(#theme-toggle:checked) .bg-emerald-50\/90 { background-color: #064e3b !important; border-color: #10b981 !important; color: #ecfdf5 !important; }
-        :root:has(#theme-toggle:checked) .text-emerald-900,
-        :root:has(#theme-toggle:checked) .text-emerald-800,
-        :root:has(#theme-toggle:checked) .text-emerald-700 { color: #a7f3d0 !important; }
-        :root:has(#theme-toggle:checked) .text-emerald-600 { color: #34d399 !important; }
-
-        :root:has(#theme-toggle:checked) .bg-red-50,
-        :root:has(#theme-toggle:checked) .bg-red-50\/90 { background-color: #7f1d1d !important; border-color: #f87171 !important; color: #fef2f2 !important; }
-        :root:has(#theme-toggle:checked) .text-red-900,
-        :root:has(#theme-toggle:checked) .text-red-800,
-        :root:has(#theme-toggle:checked) .text-red-700 { color: #fca5a5 !important; }
-        :root:has(#theme-toggle:checked) .text-red-600 { color: #f87171 !important; }
-
-        :root:has(#theme-toggle:checked) .bg-amber-50,
-        :root:has(#theme-toggle:checked) .bg-amber-50\/90 { background-color: #451a03 !important; border-color: #f59e0b !important; color: #fffbeb !important; }
-        :root:has(#theme-toggle:checked) .text-amber-900,
-        :root:has(#theme-toggle:checked) .text-amber-800,
-        :root:has(#theme-toggle:checked) .text-amber-700 { color: #fde68a !important; }
-        :root:has(#theme-toggle:checked) .text-amber-600 { color: #fbbf24 !important; }
-        :root:has(#theme-toggle:checked) .text-sky-700,
-        :root:has(#theme-toggle:checked) .text-sky-600 { color: #38bdf8 !important; }
-        :root:has(#theme-toggle:checked) .border-sky-200 { border-color: #0284c7 !important; }
-        :root:has(#theme-toggle:checked) .hover\:bg-slate-100:hover { background-color: #334155 !important; color: #ffffff !important; }
-        :root:has(#theme-toggle:checked) .hover\:bg-sky-50\/50:hover,
-        :root:has(#theme-toggle:checked) .hover\:bg-slate-50:hover { background-color: #0f172a !important; }
-
-        :root:has(#theme-toggle:checked) .shadow-sm,
-        :root:has(#theme-toggle:checked) .shadow-md,
-        :root:has(#theme-toggle:checked) .shadow-lg { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4) !important; }
-        :root:has(#theme-toggle:checked) .theme-moon-icon { display: none !important; }
-        :root:has(#theme-toggle:checked) .theme-sun-icon { display: inline-block !important; }
-
-        /* 3. Pure CSS Sibling Combinator Fallback for Universal Browsers */
-        #theme-toggle:checked ~ header,
-        #theme-toggle:checked ~ main,
-        #theme-toggle:checked ~ div,
-        #theme-toggle:checked ~ footer {
-            color: #f8fafc;
-        }
-
-        #theme-toggle:checked ~ div .bg-white,
-        #theme-toggle:checked ~ main .bg-white {
+        html.dark .bg-white {
             background-color: #1e293b !important;
             color: #f8fafc !important;
         }
 
-        #theme-toggle:checked ~ div .text-slate-800,
-        #theme-toggle:checked ~ main .text-slate-800 {
+        html.dark .bg-slate-50,
+        html.dark .bg-slate-100,
+        html.dark .bg-slate-50\/50,
+        html.dark .bg-slate-100\/80 {
+            background-color: #0b0f19 !important;
+        }
+
+        html.dark .text-slate-900,
+        html.dark .text-slate-800,
+        html.dark .text-slate-700 {
             color: #f8fafc !important;
+        }
+
+        html.dark .text-slate-600,
+        html.dark .text-slate-500 {
+            color: #cbd5e1 !important;
+        }
+
+        html.dark .text-slate-400,
+        html.dark .text-slate-300 {
+            color: #94a3b8 !important;
+        }
+
+        html.dark .border-slate-200,
+        html.dark .border-slate-300,
+        html.dark .border-slate-100 {
+            border-color: #334155 !important;
+        }
+
+        /* Option Feedback Drawers Dark Mode */
+        html.dark .bg-emerald-50, html.dark .bg-emerald-50\/90 {
+            background-color: #064e3b !important;
+            border-color: #10b981 !important;
+            color: #ecfdf5 !important;
+        }
+        html.dark .text-emerald-900, html.dark .text-emerald-800, html.dark .text-emerald-700 {
+            color: #a7f3d0 !important;
+        }
+
+        html.dark .bg-red-50, html.dark .bg-red-50\/90 {
+            background-color: #7f1d1d !important;
+            border-color: #f87171 !important;
+            color: #fef2f2 !important;
+        }
+        html.dark .text-red-900, html.dark .text-red-800, html.dark .text-red-700 {
+            color: #fca5a5 !important;
+        }
+
+        html.dark .bg-amber-50, html.dark .bg-amber-50\/90 {
+            background-color: #451a03 !important;
+            border-color: #f59e0b !important;
+            color: #fffbeb !important;
+        }
+        html.dark .text-amber-900, html.dark .text-amber-800, html.dark .text-amber-700 {
+            color: #fde68a !important;
         }
     </style>
 </head>
