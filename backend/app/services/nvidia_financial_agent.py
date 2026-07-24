@@ -5,9 +5,9 @@ import urllib.error
 from typing import Dict, Any, Optional
 
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-# Primary model for deep financial reasoning and structured JSON output on NVIDIA NIM
-DEFAULT_MODEL = "meta/llama-3.3-70b-instruct"
-FALLBACK_MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
+# Primary model for deep financial reasoning and rapid structured JSON generation on NVIDIA NIM
+DEFAULT_MODEL = "meta/llama-3.1-8b-instruct"
+FALLBACK_MODEL = "meta/llama-3.3-70b-instruct"
 
 SYSTEM_PROMPT = """You are a Senior Financial Analyst & CPA Curriculum Quality Assurance Expert.
 Your task is to review raw real-time financial market news feeds before they are committed to the CPA Study Guide database.
