@@ -79,7 +79,35 @@ def submit_case_study(
     db.commit()
 
     return CaseStudySubmitResponse(
-        score=score,
-        results=results,
-        message=f"You scored {score:.1f}% on this case study!"
+        score=round(score, 1),
+        passed=passed,
+        message=f"Simulation score: {round(score, 1)}%. {'Passed!' if passed else 'Review explanations and retry.'}",
+        results=results
     )
+
+
+@router.post("/live-news/trigger-daily-ingestion")
+def trigger_daily_live_news_ingestion(
+    raw_feed: dict = None,
+    api_key: str = "",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Triggers the Senior Financial Analyst Agent (NVIDIA NIM DeepSeek-R1 / Llama-3.1-Nemotron-70B)
+    to review daily market news and insert into the database ONLY if approved.
+    Enforces a strict 24-hour rate limit (once daily at most).
+    """
+    from backend.app.services.live_news_ingestion import LiveNewsIngestionService
+    
+    if not raw_feed:
+        raw_feed = {
+            "title": "Federal Reserve Monetary Policy & Interest Rate Benchmarks Update",
+            "summary": "Central bank interest rate decisions have increased discount rates used in fair value cash flow models across fixed income and commercial real estate sectors.",
+            "url": "https://www.federalreserve.gov/monetarypolicy.htm",
+            "published_at": "2026-07-24T00:00:00Z",
+            "source": "Federal Reserve Press Release"
+        }
+    
+    result = LiveNewsIngestionService.run_daily_agent_review_and_ingest(db, raw_feed, api_key=api_key)
+    return result

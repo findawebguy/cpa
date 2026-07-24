@@ -35,6 +35,10 @@ You are a **Senior Financial Analyst & CPA Curriculum Quality Assurance Agent**.
   - Verify that the 5 COSO components (CRIME) and Audit Risk Model ($AR = IR \times CR \times DR$) logic are mathematically and conceptually sound.
 
 ### 2. Live News & External Source Citation Auditing
+- **NVIDIA NIM Model Selection & Daily Review Agent**:
+  - **Selected Model**: `deepseek-ai/deepseek-r1` (Primary) / `nvidia/llama-3.1-nemotron-70b-instruct` (Fallback) via NVIDIA NIM API (`https://integrate.api.nvidia.com/v1`).
+  - **Pre-Database Review Guard**: Real-time financial news feeds MUST be reviewed, sanitized, and approved by the Senior Financial Analyst Agent before being inserted into the database as case study content.
+  - **Daily Ingestion Rate Limit**: Real-time data feeds are ingested **once daily at most** (enforced by a 24-hour rate-limit lock in `LiveNewsIngestionService`).
 - **Article Link Integrity**:
   - Inspect case study exhibits that link to external source data (e.g., Becker CPA Blog, FASB ASC, Federal Reserve Monetary Policy).
   - Ensure links open in new tabs (`target="_blank" rel="noopener"`) and that exhibit summaries accurately represent the linked article.
