@@ -144,16 +144,32 @@ Production runs at **https://demo.i-te.am/cpa/** and deploys from the `main` bra
 
 ---
 
-## 🛠️ Admin & QA Testing Overrides
+### 3. Live Financial News Ingestion & AI Review
+- In the **QA / Admin Panel**, click **`Ingest Live News`** (`rss` icon) to trigger the Senior Financial Analyst Agent (NVIDIA NIM Llama 3.1 8B).
+- **Toast Notifications**: Real-time progress is displayed via animated toast notifications (Loading $\rightarrow$ Approved/Rate-Limited/Rejected).
+- **Audit Dataset Logging**: All LLM interactions (prompt, raw completion, parsed JSON, score, latency) are saved into the `llm_audit_logs` table and accessible at `GET /api/v1/cases/live-news/llm-dataset-logs`.
 
-### 1. In-App Admin QA Panel
-- Click your profile button in the top right to open **Account & Exam Settings**.
-- Click **`Admin / QA`** (`shield-halved` icon) to view all tracks (FAR, AUD, REG) and their week-by-week progress.
-- Click **`Mark Done`** next to any week to instantly complete that module without needing accounting knowledge.
-- Click **`Reset Progress`** to clear all attempts and start testing from Week 1.
+---
 
-### 2. Updating / Re-seeding the Production Database
-Curriculum changes in `init_db.py` require re-seeding the live database via the admin API. See **[🚢 Production Deployment](#-production-deployment)** (step 4) for the full command and caveats.
+## ⏰ Automated Daily Cron Scheduling
+
+The platform includes a **24-hour rate-limit lock** (`LiveNewsIngestionService`) enforcing that real-time market news can only be ingested **once daily at most**. To automate this process in production, schedule a daily cron job:
+
+### Linux / macOS (`crontab -e`)
+Run once daily at 02:00 AM UTC:
+```bash
+0 2 * * * curl -s -X POST "https://demo.i-te.am/cpa/api/v1/cases/live-news/trigger-daily-ingestion" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN" >> /var/log/cpa_live_news_cron.log 2>&1
+```
+
+### Windows Task Scheduler (PowerShell)
+To set up a daily task on Windows:
+```powershell
+$action = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument '-Command "Invoke-RestMethod -Uri https://demo.i-te.am/cpa/api/v1/cases/live-news/trigger-daily-ingestion -Method Post -Headers @{ Authorization = ''Bearer YOUR_ADMIN_JWT_TOKEN'' }"'
+$trigger = New-ScheduledTaskTrigger -Daily -At 2:00AM
+Register-ScheduledTask -TaskName "CPALiveNewsIngestion" -Action $action -Trigger $trigger
+```
 
 ---
 

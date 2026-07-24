@@ -228,6 +228,13 @@ class CPAApiClient {
         });
     }
 
+    async triggerDailyLiveNewsIngestion(rawFeed = null) {
+        return await this.request("/cases/live-news/trigger-daily-ingestion", {
+            method: "POST",
+            body: JSON.stringify(rawFeed ? { raw_feed: rawFeed } : {})
+        });
+    }
+
     // Admin: Get syllabus overview with completion status
     async adminGetOverview() {
         return await this.request("/auth/admin/syllabus-overview");
