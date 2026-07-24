@@ -259,8 +259,10 @@ def reset_user_progress(
     """
     Testing & QA Reset Mechanism: Wipes user progress records and TBS attempts to reset syllabus status.
     """
+    from backend.app.models.case_study import CaseAttempt
     db.query(UserProgress).filter(UserProgress.user_id == current_user.id).delete()
     db.query(TBSAttempt).filter(TBSAttempt.user_id == current_user.id).delete()
+    db.query(CaseAttempt).filter(CaseAttempt.user_id == current_user.id).delete()
     db.commit()
     return {"status": "success", "message": "User study progress and syllabus state successfully reset for testing."}
 

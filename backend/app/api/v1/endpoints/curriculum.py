@@ -97,7 +97,7 @@ def get_syllabus(track_code: str, current_user: User = Depends(get_current_user)
         end_node_reached = any(n.id in attempted_node_ids for n in end_nodes)
         all_questions_mastered = (len(question_nodes) > 0 and all(n.id in mastered_node_ids for n in question_nodes))
 
-        is_completed = end_node_reached or all_questions_mastered or (s.week_number == 1 and tbs_passed)
+        is_completed = end_node_reached or all_questions_mastered
         is_attempted = (len(nodes) > 0 and any(n.id in attempted_node_ids for n in nodes))
 
         if is_completed:
