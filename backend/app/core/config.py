@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     DATABASE_URL: str = "sqlite:///./cpa_prep.db"
+    NVIDIA_API_KEY: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

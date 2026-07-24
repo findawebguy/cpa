@@ -46,9 +46,11 @@ You MUST respond strictly with a valid JSON object in the following format:
 If the news item is NOT usable, set "is_usable": false, "approval_status": "REJECTED", and provide a clear "rejection_reason".
 """
 
+from backend.app.core.config import settings
+
 class NVIDIAFinancialAnalystAgent:
     def __init__(self, api_key: Optional[str] = None, model_name: str = DEFAULT_MODEL):
-        self.api_key = api_key or os.getenv("NVIDIA_API_KEY", "")
+        self.api_key = api_key or os.getenv("NVIDIA_API_KEY", "") or getattr(settings, "NVIDIA_API_KEY", "")
         self.model_name = model_name
 
     def review_and_format_news(self, raw_news_item: Dict[str, Any]) -> Dict[str, Any]:
@@ -71,7 +73,7 @@ Published Date: {raw_news_item.get('published_at', 'N/A')}
                 {"role": "user", "content": user_message}
             ],
             "temperature": 0.2,
-            "max_tokens": 1500,
+            "max_tokens": 800,
             "top_p": 0.95
         }
 
@@ -87,7 +89,7 @@ Published Date: {raw_news_item.get('published_at', 'N/A')}
             data = json.dumps(payload).encode("utf-8")
             req = urllib.request.Request(NVIDIA_API_URL, data=data, headers=headers, method="POST")
             
-            with urllib.request.urlopen(req, timeout=30) as response:
+            with urllib.request.urlopen(req, timeout=60) as response:
                 resp_data = json.loads(response.read().decode("utf-8"))
                 content = resp_data["choices"][0]["message"]["content"]
                 
