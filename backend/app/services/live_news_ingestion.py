@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Tuple
 from sqlalchemy.orm import Session
 
-from backend.app.models.case_study import CaseStudy
+from backend.app.models.case_study import CaseStudy, CaseQuestion
 from backend.app.models.curriculum import Course
 from backend.app.services.nvidia_financial_agent import NVIDIAFinancialAnalystAgent
 
@@ -74,12 +74,24 @@ class LiveNewsIngestionService:
                 title=review_result.get("title", "Verified Live Financial Case Study"),
                 description=review_result.get("description", "Daily verified financial news scenario."),
                 scenario_text=review_result.get("scenario_text", ""),
-                exhibits_html=review_result.get("exhibits_html", ""),
-                questions_json=review_result.get("questions", [])
+                exhibits_html=review_result.get("exhibits_html", "")
             )
             db.add(case_study)
             db.commit()
             db.refresh(case_study)
+
+            # 5. Insert Case Study Questions
+            questions_data = review_result.get("questions", [])
+            for q_data in questions_data:
+                question = CaseQuestion(
+                    case_study_id=case_study.id,
+                    question_text=q_data.get("question_text", "Evaluate financial statement impact:"),
+                    options_json=q_data.get("options", []),
+                    correct_answer_idx=q_data.get("correct_idx", 0),
+                    explanation_html=q_data.get("explanation_html", "<p>Verified by Senior Financial Analyst AI Agent.</p>")
+                )
+                db.add(question)
+            db.commit()
 
             # Update last ingestion timestamp
             global _LAST_INGESTION_TIMESTAMP
