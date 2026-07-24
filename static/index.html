@@ -715,16 +715,18 @@
                 document.getElementById('stat-streak').innerText = profile.streak_days + "d";
                 document.getElementById('stat-mastery').innerText = Math.round(profile.mastery_percent) + "%";
                 
-                // Check if user is logged in
-                const hasCustomToken = Boolean(localStorage.getItem('cpa_jwt_token'));
-                if (hasCustomToken && profile.user && profile.user.email !== "student@cpa.com") {
+                // Check if user is authenticated (token present or profile returned valid registered email)
+                const token = localStorage.getItem('cpa_jwt_token');
+                const isStudentFallback = (profile.user && profile.user.email === "student@cpa.com" && !token);
+
+                if (profile.user && !isStudentFallback) {
                     isLoggedInUser = true;
                     document.getElementById('user-email-label').innerText = profile.user.email;
                     document.getElementById('settings-email').value = profile.user.email;
                     if (profile.user.target_exam_date) {
                         document.getElementById('settings-exam-date').value = profile.user.target_exam_date.split('T')[0];
                     }
-                    // Remove QR code button once logged in
+                    // Hide QR code button once logged in
                     const qrBtn = document.getElementById('qr-header-btn');
                     if (qrBtn) qrBtn.classList.add('hidden');
                 } else {
