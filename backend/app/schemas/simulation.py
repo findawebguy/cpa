@@ -1,10 +1,20 @@
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, ConfigDict
+from typing import List, Dict, Any, Optional, Union
+from pydantic import BaseModel, ConfigDict, field_validator
 
 class TBSRowInput(BaseModel):
     account: str
-    debit: Optional[float] = 0.0
-    credit: Optional[float] = 0.0
+    debit: Optional[Union[float, str]] = 0.0
+    credit: Optional[Union[float, str]] = 0.0
+
+    @field_validator('debit', 'credit', mode='before')
+    @classmethod
+    def parse_float_value(cls, v: Any) -> float:
+        if v is None or v == "":
+            return 0.0
+        try:
+            return float(v)
+        except (ValueError, TypeError):
+            return 0.0
 
 class TBSSubmission(BaseModel):
     rows: List[TBSRowInput]

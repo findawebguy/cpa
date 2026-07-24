@@ -49,7 +49,17 @@ class CPAApiClient {
             const response = await fetch(url, config);
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({ detail: "Network error" }));
-                throw new Error(errData.detail || `HTTP Error ${response.status}`);
+                let msg = "HTTP Error " + response.status;
+                if (errData.detail) {
+                    if (Array.isArray(errData.detail)) {
+                        msg = errData.detail.map(e => `${e.loc ? e.loc.join('.') : 'field'}: ${e.msg}`).join("; ");
+                    } else if (typeof errData.detail === 'string') {
+                        msg = errData.detail;
+                    } else {
+                        msg = JSON.stringify(errData.detail);
+                    }
+                }
+                throw new Error(msg);
             }
             return await response.json();
         } catch (err) {

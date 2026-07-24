@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CPA Exam Adaptive Learning Platform</title>
+    <!-- Favicon Data URI to eliminate browser 404 requests -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📘</text></svg>">
     
     <!-- Suppress CDN warning note for clean production console -->
     <script>
@@ -247,6 +249,9 @@
                         <div class="flex items-center gap-2">
                             <span class="bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-bold uppercase">CPA Exam Simulator</span>
                             <span class="text-xs text-slate-500" id="tbs-code-tag">Task-Based Simulation (TBS-1)</span>
+                            <span id="tbs-resume-tag" class="hidden bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-300">
+                                <i class="fa-solid fa-floppy-disk mr-1"></i> Resumed Work
+                            </span>
                         </div>
                         <h2 class="text-xl font-bold text-slate-900 mt-1" id="tbs-title">Adjusting Journal Entry & Financial Statement Reconciliation</h2>
                     </div>
@@ -828,7 +833,24 @@
             }
         }
 
-        // TBS Simulation Engine
+        // TBS Simulation Engine with State Persistence & Resumption
+        function saveTBSWork() {
+            if (!currentTBS) return;
+            const key = `cpa_tbs_work_${currentTBS.code}`;
+            localStorage.setItem(key, JSON.stringify(tbsRows));
+        }
+
+        function loadSavedTBSWork(code) {
+            const key = `cpa_tbs_work_${code}`;
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch(e) {}
+            }
+            return null;
+        }
+
         async function loadTBS(simulationCode = "tbs-1") {
             try {
                 currentTBS = await window.cpaApi.getTBS(simulationCode);
@@ -836,9 +858,17 @@
                 document.getElementById('tbs-title').innerText = currentTBS.title;
                 document.getElementById('tbs-exhibit-container').innerHTML = currentTBS.exhibit_html;
 
-                tbsRows = [
-                    { account: currentTBS.accounts_list[0] || "-- Select Account --", debit: "", credit: "" }
-                ];
+                const savedRows = loadSavedTBSWork(currentTBS.code);
+                const resumeTag = document.getElementById('tbs-resume-tag');
+                if (savedRows && savedRows.length > 0) {
+                    tbsRows = savedRows;
+                    if (resumeTag) resumeTag.classList.remove('hidden');
+                } else {
+                    tbsRows = [
+                        { account: (currentTBS.accounts_list && currentTBS.accounts_list.length > 0) ? currentTBS.accounts_list[0] : "-- Select Account --", debit: "", credit: "" }
+                    ];
+                    if (resumeTag) resumeTag.classList.add('hidden');
+                }
                 renderTBSRows();
             } catch(e) {
                 console.error("TBS load error:", e);
@@ -861,10 +891,10 @@
                         </select>
                     </td>
                     <td class="py-2 pr-2">
-                        <input type="number" value="${row.debit}" oninput="updateTBSRow(${i}, 'debit', this.value)" placeholder="0" class="w-full text-xs p-1.5 rounded border border-slate-300 font-mono text-right">
+                        <input type="number" value="${row.debit !== undefined ? row.debit : ''}" oninput="updateTBSRow(${i}, 'debit', this.value)" placeholder="0" class="w-full text-xs p-1.5 rounded border border-slate-300 font-mono text-right">
                     </td>
                     <td class="py-2 pr-2">
-                        <input type="number" value="${row.credit}" oninput="updateTBSRow(${i}, 'credit', this.value)" placeholder="0" class="w-full text-xs p-1.5 rounded border border-slate-300 font-mono text-right">
+                        <input type="number" value="${row.credit !== undefined ? row.credit : ''}" oninput="updateTBSRow(${i}, 'credit', this.value)" placeholder="0" class="w-full text-xs p-1.5 rounded border border-slate-300 font-mono text-right">
                     </td>
                     <td class="py-2 text-center">
                         <button onclick="removeTBSRow(${i})" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
@@ -874,6 +904,7 @@
             });
 
             calculateTBSBalance();
+            saveTBSWork();
         }
 
         function addTBSRow() {
@@ -894,6 +925,7 @@
         function updateTBSRow(index, field, value) {
             tbsRows[index][field] = value;
             calculateTBSBalance();
+            saveTBSWork();
         }
 
         function calculateTBSBalance() {
@@ -920,6 +952,12 @@
 
         function resetTBS() {
             playSound('click');
+            if (currentTBS) {
+                localStorage.removeItem(`cpa_tbs_work_${currentTBS.code}`);
+            }
+            const resumeTag = document.getElementById('tbs-resume-tag');
+            if (resumeTag) resumeTag.classList.add('hidden');
+
             tbsRows = [
                 { account: (currentTBS && currentTBS.accounts_list) ? currentTBS.accounts_list[0] : "-- Select Account --", debit: "", credit: "" }
             ];

@@ -23,3 +23,18 @@ def test_submit_tbs_simulation(client):
     assert data["is_balanced"] is True
     assert data["score"] == 100.0
     assert data["passed"] is True
+
+def test_submit_tbs_with_empty_strings(client):
+    # Tests that empty strings "" or string values in debit/credit inputs are safely coerced to 0.0 without 422 error
+    payload = {
+        "rows": [
+            {"account": "Insurance Expense", "debit": "3000", "credit": ""},
+            {"account": "Prepaid Insurance", "debit": "", "credit": "3000"}
+        ]
+    }
+    res = client.post("/api/v1/tbs/tbs-1/submit", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["is_balanced"] is True
+    assert data["total_debits"] == 3000.0
+    assert data["total_credits"] == 3000.0
