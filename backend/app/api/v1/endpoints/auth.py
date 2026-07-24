@@ -250,3 +250,17 @@ def update_user_profile(
     db.commit()
     db.refresh(current_user)
     return UserResponse.model_validate(current_user)
+
+@router.post("/user/reset")
+def reset_user_progress(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Testing & QA Reset Mechanism: Wipes user progress records and TBS attempts to reset syllabus status.
+    """
+    db.query(UserProgress).filter(UserProgress.user_id == current_user.id).delete()
+    db.query(TBSAttempt).filter(TBSAttempt.user_id == current_user.id).delete()
+    db.commit()
+    return {"status": "success", "message": "User study progress and syllabus state successfully reset for testing."}
+

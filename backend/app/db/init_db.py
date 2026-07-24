@@ -175,31 +175,126 @@ def init_db(db: Session):
         next_incorrect_key=None
     ))
 
-    # Seed Nodes for FAR Weeks 2-7
-    for w_num in range(2, 8):
+    # Seed Detailed, Realistic CPA Exam Curriculum Nodes for FAR Weeks 2-7
+    # Week 2: Balance Sheet, Financial Statement Presentation & Statement of Cash Flows
+    w2_id = syllabus_map["far_w2"]
+    db.add(LearningNode(
+        syllabus_id=w2_id,
+        node_key="far_w2_q1",
+        concept_name="Statement of Cash Flows - Operating Activities (Indirect Method)",
+        node_type="question",
+        scenario_content="Apex Corp reports Net Income of $150,000 for 2026. During the year, Depreciation Expense was $25,000, Accounts Receivable increased by $10,000, and Accounts Payable increased by $8,000.",
+        options_json=[
+            {"text": "Net Cash Provided by Operating Activities is $173,000", "isCorrect": True, "explanation": "Spot on! $150,000 Net Income + $25,000 non-cash Depreciation - $10,000 AR increase (working capital outflow) + $8,000 AP increase (working capital inflow) = $173,000."},
+            {"text": "Net Cash Provided by Operating Activities is $193,000", "isCorrect": False, "explanation": "Incorrect. An increase in Accounts Receivable is a use of cash and must be subtracted."},
+            {"text": "Net Cash Provided by Operating Activities is $157,000", "isCorrect": False, "explanation": "Incorrect. Depreciation is non-cash and must be added back to Net Income."},
+            {"text": "Net Cash Provided by Operating Activities is $165,000", "isCorrect": False, "explanation": "Incorrect. Check your additions and subtractions for Accounts Payable increases."}
+        ],
+        correct_answer_idx=0,
+        remediation_html="Under US GAAP (ASC 230 Indirect Method): Net Income + Non-Cash Expenses (Depreciation/Amortization) - Increases in Current Assets + Increases in Current Liabilities = Operating Cash Flow.",
+        next_correct_key="far_w2_q2",
+        next_incorrect_key="far_w2_rem1"
+    ))
+
+    db.add(LearningNode(
+        syllabus_id=w2_id,
+        node_key="far_w2_rem1",
+        concept_name="Operating Cash Flow Adjustments Breakdown",
+        node_type="remediation",
+        scenario_content="Operating Cash Flow Formula Rules (ASC 230)",
+        remediation_html="<b>Indirect Method Cash Flow Steps:</b><br>1. Start with <b>Net Income</b>.<br>2. Add back non-cash expenses (<b>Depreciation & Amortization</b>).<br>3. Subtract asset increases (e.g. Accounts Receivable, Inventory).<br>4. Add liability increases (e.g. Accounts Payable, Accrued Expenses).",
+        next_correct_key="far_w2_q2",
+        next_incorrect_key="far_w2_q1"
+    ))
+
+    db.add(LearningNode(
+        syllabus_id=w2_id,
+        node_key="far_w2_q2",
+        concept_name="Balance Sheet Classification - Current vs Non-Current",
+        node_type="question",
+        scenario_content="Brumley Co. holds a $50,000 5-year note payable requiring annual principal installments of $10,000 due every December 31. How should this debt be classified on the Dec 31, 2026 Balance Sheet?",
+        options_json=[
+            {"text": "$10,000 Current Liability and $40,000 Long-Term Liability", "isCorrect": True, "explanation": "Correct! The principal portion due within 1 year ($10,000) is classified as a Current Liability; the remaining $40,000 is a Long-Term Liability."},
+            {"text": "Entire $50,000 as a Long-Term Liability", "isCorrect": False, "explanation": "Incorrect. The principal portion maturing within 12 months must be reclassified as current."},
+            {"text": "Entire $50,000 as a Current Liability", "isCorrect": False, "explanation": "Incorrect. Portions maturing after 12 months remain long-term liabilities."}
+        ],
+        correct_answer_idx=0,
+        remediation_html="Debt principal maturing within 12 months or operating cycle must be presented under Current Liabilities.",
+        next_correct_key="far_w2_end",
+        next_incorrect_key="far_w2_rem1"
+    ))
+
+    db.add(LearningNode(
+        syllabus_id=w2_id,
+        node_key="far_w2_end",
+        concept_name="Week 2 Financial Statements Mastered",
+        node_type="end",
+        scenario_content="🎉 Week 2 Financial Statements & Statement of Cash Flows Mastered!",
+        remediation_html="Excellent performance! You have mastered Balance Sheet classification rules and Operating Cash Flow adjustments."
+    ))
+
+    # Week 3: Revenue Recognition (ASC 606)
+    w3_id = syllabus_map["far_w3"]
+    db.add(LearningNode(
+        syllabus_id=w3_id,
+        node_key="far_w3_q1",
+        concept_name="ASC 606 5-Step Revenue Model - Performance Obligations",
+        node_type="question",
+        scenario_content="Software Solutions Inc enters into a contract to sell software license for $80,000 and 1 year of technical support for $20,000 (standalone prices match these values). Software is delivered on Jan 1; support is provided evenly across the year. How much revenue is recognized on Jan 1?",
+        options_json=[
+            {"text": "$80,000 recognized on Jan 1; $20,000 deferred across the year", "isCorrect": True, "explanation": "Perfect! The software license performance obligation is satisfied at a point in time (Jan 1 delivery), while technical support is satisfied over time (deferred revenue)."},
+            {"text": "Entire $100,000 recognized on Jan 1", "isCorrect": False, "explanation": "Incorrect. Technical support is a distinct performance obligation satisfied over time."},
+            {"text": "Entire $100,000 deferred until Dec 31", "isCorrect": False, "explanation": "Incorrect. Delivered software licenses transfer control immediately."}
+        ],
+        correct_answer_idx=0,
+        remediation_html="ASC 606 Step 5: Recognize revenue when (or as) each distinct performance obligation is satisfied.",
+        next_correct_key="far_w3_end",
+        next_incorrect_key="far_w3_q1"
+    ))
+
+    db.add(LearningNode(
+        syllabus_id=w3_id,
+        node_key="far_w3_end",
+        concept_name="Week 3 Revenue Recognition Mastered",
+        node_type="end",
+        scenario_content="🎉 Week 3 ASC 606 Mastered!",
+        remediation_html="Congratulations! You have mastered the 5-step Revenue Recognition framework."
+    ))
+
+    # Seed Weeks 4-7 with professional domain-specific nodes
+    w_data = {
+        4: ("Inventory (LIFO/FIFO/LCM) & Property, Plant, Equipment (ASC 360)", "far_w4_q1", "Inventory Valuation - Lower of Cost or Net Realizable Value (NRV)", "Vanguard Inc inventory cost is $100/unit. Replacement cost is $85, estimated selling price is $110, and completion/disposal costs are $15. Under GAAP FIFO, at what value is inventory reported?", "Inventory is reported at NRV of $95/unit ($110 - $15)", "$95/unit", "$100/unit", "$85/unit", 0, "Under GAAP (excluding LIFO), inventory is valued at Lower of Cost ($100) or Net Realizable Value ($110 - $15 = $95)."),
+        5: ("Liabilities, Bonds & Leases (ASC 842)", "far_w5_q1", "Operating vs Finance Lease Classification (ASC 842)", "A company leases equipment for 4 out of 5 years of useful life with no purchase option. Under ASC 842, how should this lease be classified by lessee?", "Finance Lease because lease term exceeds 75% of economic life", "Finance Lease", "Operating Lease", "Off-balance sheet rental", 0, "ASC 842 Criteria: Lease term $\\ge$ 75% of economic life triggers Finance Lease classification."),
+        6: ("Stockholders' Equity & Earnings Per Share (ASC 260)", "far_w6_q1", "Diluted Earnings Per Share - Treasury Stock Method", "Options to purchase 10,000 shares at $20/share are outstanding. Average market price of common stock during year is $25. How many incremental shares are added to Diluted EPS denominator?", "2,000 incremental shares", "2,000 shares", "10,000 shares", "0 shares", 0, "Treasury Stock Method: Proceeds = 10,000 * $20 = $200,000. Shares repurchased at market = $200,000 / $25 = 8,000. Incremental shares = 10,000 - 8,000 = 2,000."),
+        7: ("Consolidations & Non-Profit Accounting (ASC 810 / 958)", "far_w7_q1", "Consolidation - Elimination of Intercompany Transactions", "Parent sells inventory costing $60,000 to Subsidiary for $100,000. At year-end, Subsidiary still holds 50% of this inventory. How much unrealized intercompany profit must be eliminated in consolidation?", "$20,000 unrealized gross profit eliminated", "$20,000", "$40,000", "$0", 0, "Total intercompany profit = $100k - $60k = $40k. 50% remaining in ending inventory = $20k unrealized profit to eliminate.")
+    }
+
+    for w_num in range(4, 8):
+        title, q_key, c_name, scenario, exp, opt0, opt1, opt2, correct_i, rem = w_data[w_num]
         s_id = syllabus_map[f"far_w{w_num}"]
         db.add(LearningNode(
             syllabus_id=s_id,
-            node_key=f"far_w{w_num}_q1",
-            concept_name=f"FAR Week {w_num} Core Principles",
+            node_key=q_key,
+            concept_name=c_name,
             node_type="question",
-            scenario_content=f"FAR Week {w_num} foundational scenario testing core CPA exam standards.",
+            scenario_content=scenario,
             options_json=[
-                {"text": "Standard GAAP Treatment A", "isCorrect": True, "explanation": "Correct GAAP application."},
-                {"text": "Non-GAAP Treatment B", "isCorrect": False, "explanation": "Violates GAAP recognition criteria."}
+                {"text": opt0, "isCorrect": (correct_i == 0), "explanation": exp if correct_i == 0 else "Incorrect application of GAAP standard."},
+                {"text": opt1, "isCorrect": (correct_i == 1), "explanation": exp if correct_i == 1 else "Incorrect option."},
+                {"text": opt2, "isCorrect": (correct_i == 2), "explanation": exp if correct_i == 2 else "Violates ASC guidelines."}
             ],
-            correct_answer_idx=0,
-            remediation_html=f"Review FAR Week {w_num} codification standards.",
+            correct_answer_idx=correct_i,
+            remediation_html=rem,
             next_correct_key=f"far_w{w_num}_end",
-            next_incorrect_key=f"far_w{w_num}_end"
+            next_incorrect_key=q_key
         ))
         db.add(LearningNode(
             syllabus_id=s_id,
             node_key=f"far_w{w_num}_end",
-            concept_name=f"Week {w_num} Completed",
+            concept_name=f"Week {w_num} Mastered",
             node_type="end",
-            scenario_content=f"🎉 Week {w_num} Mastered!",
-            remediation_html=f"Great job completing FAR Week {w_num} principles."
+            scenario_content=f"🎉 {title} Mastered!",
+            remediation_html=f"Great job completing FAR Week {w_num} CPA module."
         ))
 
     # 3. AUD TRACK (6 WEEKS)

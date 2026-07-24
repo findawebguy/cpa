@@ -69,3 +69,17 @@ def test_qr_session_generation_and_watcher(client):
     status_data = res_watcher_after.json()
     assert status_data["scanned"] is True
     assert status_data["access_token"] == token
+
+def test_reset_user_progress(client):
+    # Attempt a question first
+    client.post("/api/v1/nodes/q1/submit", json={"index": 0, "confidence": "high"})
+    
+    # Call reset endpoint
+    res = client.post("/api/v1/auth/user/reset")
+    assert res.status_code == 200
+    assert res.json()["status"] == "success"
+
+    # Verify profile stats reset to 0
+    prof = client.get("/api/v1/auth/user/profile").json()
+    assert prof["total_attempted"] == 0
+

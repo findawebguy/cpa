@@ -508,7 +508,12 @@
                 <div id="settings-msg" class="hidden text-xs font-medium p-2 rounded"></div>
             </div>
             <div class="flex justify-between items-center pt-2">
-                <button onclick="performLogout()" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl transition">Log Out</button>
+                <div class="flex gap-2">
+                    <button onclick="performLogout()" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl transition">Log Out</button>
+                    <button onclick="performResetProgress()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-xs rounded-xl transition border border-amber-200" title="Reset all syllabus progress & test unlocking sequence">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> Reset Progress (QA)
+                    </button>
+                </div>
                 <div class="flex gap-2">
                     <button onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">Cancel</button>
                     <button onclick="saveUserSettings()" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow transition">Save Updates</button>
@@ -1357,6 +1362,20 @@
             closeSettingsModal();
             isLoggedInUser = false;
             location.reload();
+        }
+
+        async function performResetProgress() {
+            if (!confirm("Are you sure you want to reset all study progress and syllabus unlocking state for testing?")) return;
+            playSound('click');
+            try {
+                await window.cpaApi.resetUserProgress();
+                localStorage.removeItem('cpa_guest_progress');
+                closeSettingsModal();
+                alert("Progress successfully reset! Reloading syllabus...");
+                location.reload();
+            } catch(e) {
+                alert(`Reset failed: ${e.message}`);
+            }
         }
 
         // QR Mobile Passkey Modal for Desktop Authentication

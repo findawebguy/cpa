@@ -177,10 +177,13 @@ class CPAApiClient {
         });
     }
 
-    // Analytics API
-    async getDiagnostics() {
-        return await this.request("/analytics/diagnostics");
+    // Testing & QA Reset API
+    async resetUserProgress() {
+        return await this.request("/auth/user/reset", {
+            method: "POST"
+        });
     }
 }
 
 window.cpaApi = new CPAApiClient();
+
