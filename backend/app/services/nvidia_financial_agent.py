@@ -5,8 +5,8 @@ import urllib.error
 from typing import Dict, Any, Optional
 
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-# Primary model for deep financial reasoning; fallback to Nemotron 70B if needed
-DEFAULT_MODEL = "deepseek-ai/deepseek-r1"
+# Primary model for deep financial reasoning and structured JSON output on NVIDIA NIM
+DEFAULT_MODEL = "meta/llama-3.3-70b-instruct"
 FALLBACK_MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
 
 SYSTEM_PROMPT = """You are a Senior Financial Analyst & CPA Curriculum Quality Assurance Expert.
