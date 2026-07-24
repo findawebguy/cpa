@@ -1,17 +1,21 @@
-"""Regression tests for the week-completion gating invariant.
+"""Regression tests for the week-completion gating invariant and the
+remediation -> practical-application learning flow.
 
-Bug: a user could complete a week (reach its 'end' node) while answering a
-question WRONG, because incorrect-answer routing skipped forward or pointed
-straight at the end node. These tests lock in the invariant that an 'end' node
-is only reachable by answering every gating question correctly.
+Invariant: an incorrect answer must never reach a week's `end` node, so a week
+can only be completed by answering every gating question correctly. Each wrong
+answer routes: question -> `_rem` (worked example) -> `_app` (practical
+application) -> back to the same question.
 """
 from backend.app.models.curriculum import LearningNode
 
 
+def _nodes_by_key(db):
+    return {n.node_key: n for n in db.query(LearningNode).all()}
+
+
 def _next_gate(nodes_by_key, start_key):
-    """Follow a chain of remediation nodes from `start_key` (the frontend 'Proceed'
-    button uses a remediation's next_correct_key) and return the first
-    question/end node encountered -- the next real gate a user must clear."""
+    """Follow remediation/application nodes from `start_key` (their 'proceed'
+    button uses next_correct_key) to the first question/end gate reached."""
     seen = set()
     key = start_key
     while key and key not in seen:
@@ -21,131 +25,103 @@ def _next_gate(nodes_by_key, start_key):
             return None
         if node.node_type in ("question", "end"):
             return node
-        key = node.next_correct_key  # remediation -> proceed
+        key = node.next_correct_key
     return None
 
 
-def test_wrong_answer_never_reaches_end_node(db):
-    """For EVERY question node across all tracks, a wrong answer must lead
-    (possibly via remediation) back to another question -- never to an end node."""
-    nodes = db.query(LearningNode).all()
-    nodes_by_key = {n.node_key: n for n in nodes}
+def _complete_week(client, start_key, end_key, track="FAR"):
+    """Answer questions correctly (seed correct_idx is always 0) from start to end."""
+    key, guard = start_key, 0
+    while key and key != end_key and guard < 60:
+        guard += 1
+        key = client.post(f"/api/v1/nodes/{key}/submit",
+                          json={"index": 0, "confidence": "high"}).json().get("next_node_key")
+    return key
 
+
+def test_wrong_answer_never_reaches_end_node(db):
+    """Every question, across all tracks: a wrong answer leads (via rem/app) back
+    to another question, never to an end node."""
+    nbk = _nodes_by_key(db)
     offenders = []
-    for q in nodes:
+    for q in nbk.values():
         if q.node_type != "question":
             continue
-        gate = _next_gate(nodes_by_key, q.next_incorrect_key)
+        gate = _next_gate(nbk, q.next_incorrect_key)
         if gate is None or gate.node_type != "question":
             offenders.append((q.node_key, q.next_incorrect_key,
                               gate.node_key if gate else None,
                               gate.node_type if gate else None))
-
-    assert not offenders, (
-        "These questions let a wrong answer reach a non-question gate (end node "
-        "or dead end): " + str(offenders)
-    )
+    assert not offenders, f"Questions whose wrong path reaches a non-question gate: {offenders}"
 
 
-def test_far_w2_wrong_q1_routes_back_not_forward(client):
-    """The reported bug: wrong far_w2_q1 must route to remediation that returns
-    to far_w2_q1 -- it must NOT skip forward to far_w2_q2 or far_w2_end."""
-    res = client.post("/api/v1/nodes/far_w2_q1/submit", json={"index": 1, "confidence": "medium"})
+def test_every_question_has_worked_example_then_application(db):
+    """The reported UX fix: each question's wrong path is
+    question -> `_rem` (remediation) -> `_app` (application) -> back to question."""
+    nbk = _nodes_by_key(db)
+    questions = [n for n in nbk.values() if n.node_type == "question"]
+    assert questions, "no question nodes seeded"
+    for q in questions:
+        rem_key, app_key = f"{q.node_key}_rem", f"{q.node_key}_app"
+        assert q.next_incorrect_key == rem_key, f"{q.node_key} wrong path != {rem_key}"
+        assert rem_key in nbk and nbk[rem_key].node_type == "remediation"
+        assert app_key in nbk and nbk[app_key].node_type == "application"
+        # remediation proceeds to the practical application, which returns to the question
+        assert nbk[rem_key].next_correct_key == app_key
+        assert nbk[app_key].next_correct_key == q.node_key
+
+
+def test_application_node_api_shape(client):
+    """The application node is served with practical-application content and
+    routes back to its originating question."""
+    res = client.get("/api/v1/nodes/FAR_w1_q0_app")
     assert res.status_code == 200
+    data = res.json()
+    assert data["node_type"] == "application"
+    assert data["next_node_key"] == "FAR_w1_q0"   # 'Return to Question'
+    assert data["remediation_html"]               # has real content, not empty
+
+
+def test_worked_example_node_proceeds_to_application(client):
+    rem = client.get("/api/v1/nodes/FAR_w1_q0_rem").json()
+    assert rem["node_type"] == "remediation"
+    assert rem["next_node_key"] == "FAR_w1_q0_app"  # 'Proceed to Practical Application'
+    assert rem["remediation_html"]
+
+
+def test_wrong_answer_routes_to_remediation(client):
+    res = client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": 1, "confidence": "high"})
     body = res.json()
     assert body["is_correct"] is False
-    assert body["next_node_key"] == "far_w2_rem1"
-
-    rem = client.get("/api/v1/nodes/far_w2_rem1").json()
-    assert rem["next_node_key"] == "far_w2_q1"  # loops back, does not skip to q2/end
-
-
-def test_aud_wrong_answer_does_not_complete_week(client):
-    res = client.post("/api/v1/nodes/q1_aud/submit", json={"index": 1, "confidence": "medium"})
-    assert res.json()["next_node_key"] == "q1_aud"  # retry, not finish_aud
-
-    syl = client.get("/api/v1/courses/AUD/syllabus").json()
-    assert syl[0]["status"] != "completed"
-
-
-def test_reg_wrong_answer_does_not_complete_week(client):
-    res = client.post("/api/v1/nodes/q1_reg/submit", json={"index": 1, "confidence": "medium"})
-    assert res.json()["next_node_key"] == "q1_reg"  # retry, not finish_reg
-
-    syl = client.get("/api/v1/courses/REG/syllabus").json()
-    assert syl[0]["status"] != "completed"
-
-
-def test_far_week2_end_to_end_gating(client):
-    """End-to-end reproduction of the user's scenario: completing week 1, then
-    getting a week-2 question wrong must NOT complete week 2. Only correctly
-    answering both week-2 questions completes it."""
-    client.post("/api/v1/auth/user/reset")
-
-    # Complete Week 1 by answering the core questions correctly.
-    assert client.post("/api/v1/nodes/q1/submit", json={"index": 0, "confidence": "medium"}).json()["next_node_key"] == "q2"
-    assert client.post("/api/v1/nodes/q2/submit", json={"index": 1, "confidence": "medium"}).json()["next_node_key"] == "q3"
-    assert client.post("/api/v1/nodes/q3/submit", json={"index": 0, "confidence": "medium"}).json()["next_node_key"] == "finish_w1"
-
-    syl = client.get("/api/v1/courses/FAR/syllabus").json()
-    assert syl[0]["status"] == "completed"            # Week 1 done (correct final answer)
-    assert syl[1]["status"] in ("unlocked", "in-progress")  # Week 2 unlocked
-
-    # Answer far_w2_q1 WRONG -> week 2 must stay incomplete, week 3 stays locked.
-    client.post("/api/v1/nodes/far_w2_q1/submit", json={"index": 1, "confidence": "medium"})
-    syl = client.get("/api/v1/courses/FAR/syllabus").json()
-    assert syl[1]["status"] != "completed"
-    assert syl[2]["status"] == "locked"
-
-    # Now answer both week-2 questions correctly -> week 2 completes, week 3 unlocks.
-    assert client.post("/api/v1/nodes/far_w2_q1/submit", json={"index": 0, "confidence": "medium"}).json()["next_node_key"] == "far_w2_q2"
-    # get q2 wrong first -> still not complete
-    client.post("/api/v1/nodes/far_w2_q2/submit", json={"index": 1, "confidence": "medium"})
-    syl = client.get("/api/v1/courses/FAR/syllabus").json()
-    assert syl[1]["status"] != "completed"
-    # then correct
-    assert client.post("/api/v1/nodes/far_w2_q2/submit", json={"index": 0, "confidence": "medium"}).json()["next_node_key"] == "far_w2_end"
-
-    syl = client.get("/api/v1/courses/FAR/syllabus").json()
-    assert syl[1]["status"] == "completed"
-    assert syl[2]["status"] in ("unlocked", "in-progress")
-
-    client.post("/api/v1/auth/user/reset")
+    assert body["next_node_key"] == "FAR_w1_q0_rem"
 
 
 def test_visit_end_node_does_not_grant_completion(client):
-    """The /visit endpoint is a UX acknowledgement only -- it must never mark a
-    week complete. Crafted jumps to an end node (with zero work, or after only a
-    wrong answer) must leave the week incomplete."""
+    """The /visit endpoint is a UX acknowledgement only; it must never complete a
+    week -- neither with zero work nor after only a wrong answer."""
     client.post("/api/v1/auth/user/reset")
 
-    # (a) Zero work: jump straight to a week-3 end node.
-    res = client.post("/api/v1/nodes/far_w3_end/visit")
+    res = client.post("/api/v1/nodes/FAR_w1_end/visit")
     assert res.json()["completed"] is False
-    syl = client.get("/api/v1/courses/FAR/syllabus").json()
-    assert syl[2]["status"] != "completed"
+    assert client.get("/api/v1/courses/FAR/syllabus").json()[0]["status"] != "completed"
 
-    # (b) After only a WRONG answer: attempt far_w3_q1 wrong, then visit the end.
-    client.post("/api/v1/nodes/far_w3_q1/submit", json={"index": 1, "confidence": "high"})
-    res = client.post("/api/v1/nodes/far_w3_end/visit")
+    client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": 1, "confidence": "high"})
+    res = client.post("/api/v1/nodes/FAR_w1_end/visit")
     assert res.json()["completed"] is False
+    assert client.get("/api/v1/courses/FAR/syllabus").json()[0]["status"] != "completed"
+
+    client.post("/api/v1/auth/user/reset")
+
+
+def test_correct_answers_complete_week_and_unlock_next(client):
+    """Completion is earned purely by correct answers (submit-side), no /visit."""
+    client.post("/api/v1/auth/user/reset")
     syl = client.get("/api/v1/courses/FAR/syllabus").json()
-    assert syl[2]["status"] != "completed"
+    last = _complete_week(client, syl[0]["start_node_key"], "FAR_w1_end")
+    assert last == "FAR_w1_end"
 
-    client.post("/api/v1/auth/user/reset")
-
-
-def test_correct_final_answer_completes_week_without_visit(client):
-    """Completion is earned by the correct final answer alone (submit-side),
-    with no /visit call needed."""
-    client.post("/api/v1/auth/user/reset")
-    # Reach + clear Week 1 so Week 3's gate isn't relevant; test Week 1 directly.
-    client.post("/api/v1/nodes/q1/submit", json={"index": 0, "confidence": "medium"})
-    client.post("/api/v1/nodes/q2/submit", json={"index": 1, "confidence": "medium"})
-    res = client.post("/api/v1/nodes/q3/submit", json={"index": 0, "confidence": "medium"})
-    assert res.json()["next_node_key"] == "finish_w1"
-
-    # No /visit call -- week must already be complete from the correct final answer.
     syl = client.get("/api/v1/courses/FAR/syllabus").json()
     assert syl[0]["status"] == "completed"
+    assert syl[1]["status"] in ("unlocked", "in-progress")
+    assert syl[2]["status"] == "locked"
     client.post("/api/v1/auth/user/reset")

@@ -10,6 +10,46 @@ from backend.app.models.agent_log import LLMAuditLog
 from backend.app.db.seed_questions import get_all_questions
 from backend.app.db.seed_cases import get_case_studies
 
+
+def _correct_option(q: dict) -> dict:
+    opts = q.get("options", []) or []
+    idx = q.get("correct_idx", 0)
+    return opts[idx] if 0 <= idx < len(opts) else {"text": "", "explanation": ""}
+
+
+def _worked_example_html(q: dict) -> str:
+    """A step-by-step worked solution to the exact item the user just missed."""
+    c = _correct_option(q)
+    return (
+        "<p class='mb-3 text-slate-600'>Let's work through the item you just missed, one step at a time:</p>"
+        "<ol class='list-decimal list-inside space-y-2 text-slate-700'>"
+        f"<li><span class='font-semibold text-slate-800'>The scenario:</span> {q.get('scenario', '')}</li>"
+        f"<li><span class='font-semibold text-slate-800'>The correct treatment:</span> {c.get('text', '')}</li>"
+        f"<li><span class='font-semibold text-slate-800'>Why it's correct:</span> {c.get('explanation', '')}</li>"
+        "</ol>"
+        f"<div class='mt-3 p-3 bg-white/70 rounded-lg border border-amber-200'>"
+        f"<span class='font-bold text-amber-800'>Key principle:</span> {q.get('remediation', '')}</div>"
+    )
+
+
+def _application_html(q: dict) -> str:
+    """A repeatable method the user applies before re-attempting the question."""
+    c = _correct_option(q)
+    return (
+        "<p class='mb-3 text-slate-600'>Now turn that into a method you can reuse. "
+        "Walk these steps, then return to the question and lock in the answer:</p>"
+        "<ol class='list-decimal list-inside space-y-1.5 text-slate-700'>"
+        "<li>Identify what the item is testing — the accounts, standard, or transaction involved.</li>"
+        f"<li>Recall the rule: <span class='font-semibold'>{q.get('remediation', '')}</span></li>"
+        "<li>Map the rule onto the facts and eliminate every option that violates it.</li>"
+        "<li>Confirm the single treatment that satisfies the rule.</li>"
+        "</ol>"
+        f"<div class='mt-3 p-3 bg-white/70 rounded-lg border border-sky-200 text-slate-700'>"
+        f"<span class='font-bold text-sky-800'>Applied to this concept:</span> {c.get('text', '')} "
+        f"&mdash; {c.get('explanation', '')}</div>"
+    )
+
+
 def reseed_curriculum(db: Session):
     print("RESEED: Wiping curriculum data...")
     Base.metadata.create_all(bind=engine)
@@ -76,22 +116,32 @@ def init_db(db: Session):
             s_id = syllabus_map[f"{c_code}_w{w}"]
             for i, q in enumerate(q_list):
                 q_key = f"{c_code}_w{w}_q{i}"
+                rem_key = f"{c_code}_w{w}_q{i}_rem"
+                app_key = f"{c_code}_w{w}_q{i}_app"
                 is_last = (i == len(q_list) - 1)
                 next_correct = f"{c_code}_w{w}_end" if is_last else f"{c_code}_w{w}_q{i+1}"
-                next_incorrect = f"{c_code}_w{w}_q{i}_rem"
 
-                # Main Question
+                # Main Question -> a wrong answer goes to the worked-example remediation
                 db.add(LearningNode(
                     syllabus_id=s_id, node_key=q_key, concept_name=q["concept_name"],
                     node_type="question", scenario_content=q["scenario"], options_json=q["options"],
                     correct_answer_idx=q["correct_idx"], remediation_html=q["remediation"],
-                    next_correct_key=next_correct, next_incorrect_key=next_incorrect
+                    next_correct_key=next_correct, next_incorrect_key=rem_key
                 ))
 
-                # Remediation
+                # Remediation: a worked example of the exact miss -> proceeds to the practical application
                 db.add(LearningNode(
-                    syllabus_id=s_id, node_key=next_incorrect, concept_name=f"{q['concept_name']} - Review",
-                    node_type="remediation", scenario_content="Review this concept:", remediation_html=q["remediation"],
+                    syllabus_id=s_id, node_key=rem_key, concept_name=f"{q['concept_name']} - Worked Example",
+                    node_type="remediation", scenario_content="Here's how to solve it, step by step:",
+                    remediation_html=_worked_example_html(q),
+                    next_correct_key=app_key, next_incorrect_key=app_key
+                ))
+
+                # Practical Application: a reusable method + practice -> returns to the question to re-attempt
+                db.add(LearningNode(
+                    syllabus_id=s_id, node_key=app_key, concept_name=f"{q['concept_name']} - Practical Application",
+                    node_type="application", scenario_content="Apply the concept:",
+                    remediation_html=_application_html(q),
                     next_correct_key=q_key, next_incorrect_key=q_key
                 ))
             

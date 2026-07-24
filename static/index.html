@@ -1156,9 +1156,13 @@
                     document.getElementById('concept-level-text').innerText = `Question ${qIndex} of 10 (${pct}%)`;
                     document.getElementById('concept-level-bar').style.width = `${pct}%`;
                 } else if (node.node_type === 'remediation') {
-                    document.getElementById('node-type-badge').innerText = "PRINCIPLE REMEDIATION";
+                    document.getElementById('node-type-badge').innerText = "WORKED EXAMPLE";
                     document.getElementById('node-type-badge').className = "bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold";
-                    document.getElementById('current-concept-tag').innerText = `Remediation Guidance • ${node.concept_name}`;
+                    document.getElementById('current-concept-tag').innerText = `Worked Example • ${node.concept_name}`;
+                } else if (node.node_type === 'application') {
+                    document.getElementById('node-type-badge').innerText = "PRACTICAL APPLICATION";
+                    document.getElementById('node-type-badge').className = "bg-sky-100 text-sky-800 text-xs px-2.5 py-1 rounded-full font-bold";
+                    document.getElementById('current-concept-tag').innerText = `Practical Application • ${node.concept_name}`;
                 } else {
                     document.getElementById('node-type-badge').innerText = "MODULE MASTERED";
                     document.getElementById('node-type-badge').className = "bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold";
@@ -1199,15 +1203,33 @@
                     body.innerHTML = `
                         <div class="fade-in space-y-6">
                             <div class="p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-900 rounded-r-lg text-xs leading-relaxed font-sans">
-                                <strong><i class="fa-solid fa-lightbulb mr-1"></i> Remediation Guidance:</strong> ${node.scenario_content || ''}
+                                <strong><i class="fa-solid fa-lightbulb mr-1"></i> ${node.scenario_content || 'Worked example:'}</strong>
                             </div>
                             <div class="prose max-w-none text-slate-700 text-xs leading-relaxed font-sans">
                                 ${node.remediation_html || ''}
                             </div>
                             <div class="pt-4 flex justify-end">
-                                <button onclick="renderNode('${node.next_node_key || node.next_correct_key || node.next_incorrect_key || currentNodeId}')" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                                <button onclick="renderNode('${node.next_node_key || node.next_correct_key || currentNodeId}')" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
                                     <span>Proceed to Practical Application</span>
                                     <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else if (node.node_type === "application") {
+                    body.innerHTML = `
+                        <div class="fade-in space-y-6">
+                            <div class="p-4 bg-sky-50 border-l-4 border-sky-500 text-sky-900 rounded-r-lg text-xs leading-relaxed font-sans">
+                                <strong><i class="fa-solid fa-flask mr-1"></i> ${node.scenario_content || 'Practical application:'}</strong>
+                            </div>
+                            <div class="prose max-w-none text-slate-700 text-xs leading-relaxed font-sans">
+                                ${node.remediation_html || ''}
+                            </div>
+                            ${node.has_interactive_tool ? getInteractiveToolHTML(node.tool_type) : ''}
+                            <div class="pt-4 flex justify-end">
+                                <button onclick="renderNode('${node.next_node_key || node.next_correct_key || currentNodeId}')" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Return to Question</span>
                                 </button>
                             </div>
                         </div>

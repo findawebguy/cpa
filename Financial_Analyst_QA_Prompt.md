@@ -51,6 +51,24 @@ You are a **Senior Financial Analyst & CPA Curriculum Quality Assurance Agent**.
   - Treasury Stock Method incremental share calculations for Diluted EPS.
   - Intercompany profit elimination in consolidations.
 
+### 4. Curriculum Progression & Completion Gating Integrity (REGRESSION)
+These are recently-fixed critical defects — a wrong answer used to complete a week, and completion could be forged. They must not regress. Verify via the API (base `http://localhost:8005/api/v1`; authenticate as your agent, or the demo user `student@cpa.com` / `pass123`) and/or the UI:
+- **A wrong answer never completes a week.** Submit an incorrect answer to a question and confirm `next_node_key` is that question's `_rem` (worked example) node — **never** an `_end` node. The week's `status` must stay `in-progress` and the next week must stay `locked`.
+- **Every question gates the same way.** For each `{TRACK}_w{w}_q{i}`, the wrong path routes `q → _rem → _app → q` (worked example → practical application → back to the same question). It must be impossible to reach `{TRACK}_w{w}_end` without answering every question in that week correctly.
+- **Completion is earned only by a correct final answer.** A week flips to `completed` only after its last question is answered correctly. Confirm a crafted `POST /nodes/{TRACK}_w{w}_end/visit` returns `{"completed": false}` and does NOT complete the week when the questions were not answered correctly.
+- **Sequential unlock.** Week N+1 unlocks only after Week N is `completed`.
+
+Run the automated regression harnesses and confirm **both are green** before signing off:
+```bash
+python -m pytest backend/tests -v            # incl. test_week_gating.py: graph-walk invariant across FAR/AUD/REG
+python qa_test_live.py http://localhost:8005 # end-to-end walkthrough; expect "PASSED, 0 FAILED"
+```
+
+### 5. Worked-Example & Practical-Application Content Accuracy
+- Each `_rem` (**Worked Example**) node must present a technically correct, non-hallucinated solution to its question — the stated "correct treatment" and "why" must match the question's designated correct option and the governing codification (FASB ASC / IRC / GAAS / COSO).
+- Each `_app` (**Practical Application**) node must describe a valid, reusable method for the concept and must not contradict the question's correct answer.
+- Spot-check that generic auto-generated remediation/application text has not overwritten a concept that deserves a specific worked solution (flag as a content-quality discrepancy).
+
 ---
 
 ## Periodic Verification Checklist & Output Format
@@ -72,7 +90,14 @@ Run this checklist on each scheduled verification run:
 - [ ] Verified external article links (e.g. Becker CPA 150-credit hour guide).
 - [ ] Verified Live News Feed exhibits for real-time macroeconomic accuracy.
 
-### 3. Discrepancies & Correction Recommendations
+### 3. Curriculum Progression & Gating (Regression)
+- [ ] Wrong answers route to a `_rem` (worked example) node — never to an `_end` node.
+- [ ] `q → _rem → _app → q` chain intact for every question; an end node is unreachable without answering all questions correctly.
+- [ ] Crafted `POST /nodes/{...}_end/visit` returns `{"completed": false}` and does not complete an unearned week.
+- [ ] `pytest backend/tests` and `python qa_test_live.py http://localhost:8005` both pass (0 failed).
+- [ ] Worked Example / Practical Application content is codification-accurate and non-hallucinated.
+
+### 4. Discrepancies & Correction Recommendations
 
 #### [Discrepancy #1] (if any)
 - **Component**: (e.g. REG Week 3 Question 5)
