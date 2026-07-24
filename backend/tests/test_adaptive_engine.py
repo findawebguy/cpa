@@ -5,13 +5,14 @@ from backend.app.models.user import User
 def test_adaptive_engine_high_confidence_incorrect(db):
     user = db.query(User).filter(User.email == "student@cpa.com").first()
     node = db.query(LearningNode).filter(LearningNode.node_key == "FAR_w1_q0").first()
+    wrong_idx = (node.correct_answer_idx + 1) % len(node.options_json)
 
     # Submit incorrect option with HIGH confidence -> High overconfidence error (-15% mastery)
     is_correct, explanation, next_key, delta, new_mastery, meta = AdaptiveEngine.evaluate_submission(
         db=db,
         user=user,
         node=node,
-        selected_option_idx=1,  # Incorrect option
+        selected_option_idx=wrong_idx,  # Incorrect option
         confidence_level="high"
     )
 
@@ -29,7 +30,7 @@ def test_adaptive_engine_high_confidence_correct(db):
         db=db,
         user=user,
         node=node,
-        selected_option_idx=0,  # Correct option
+        selected_option_idx=node.correct_answer_idx,  # Correct option
         confidence_level="high"
     )
 

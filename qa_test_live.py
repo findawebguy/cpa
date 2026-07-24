@@ -79,10 +79,25 @@ check("q1 is question type", q1["node_type"] == "question")
 check("q1 has options", len(q1["options"]) >= 2)
 print(f"  concept: {q1['concept_name']}")
 
+def submit_correct(node_key):
+    for idx in range(4):
+        r = requests.post(f"{BASE}/nodes/{node_key}/submit", headers=headers, json={"index": idx, "confidence": "high"})
+        res = r.json()
+        if res.get("is_correct"):
+            return res
+    return res
+
+def submit_wrong(node_key):
+    for idx in range(4):
+        r = requests.post(f"{BASE}/nodes/{node_key}/submit", headers=headers, json={"index": idx, "confidence": "high"})
+        res = r.json()
+        if not res.get("is_correct"):
+            return res
+    return res
+
 # 5. Wrong answer to q1
-print(f"\n[5] WRONG ANSWER TO Q1 ({start_key}) (index=1)")
-r = requests.post(f"{BASE}/nodes/{start_key}/submit", headers=headers, json={"index": 1, "confidence": "high"})
-result = r.json()
+print(f"\n[5] WRONG ANSWER TO Q1 ({start_key})")
+result = submit_wrong(start_key)
 check("q1 answer incorrect", result["is_correct"] is False)
 check("Routes to remediation", "rem" in result["next_node_key"] or "q" in result["next_node_key"])
 check("Mastery decreased", result["mastery_delta"] < 0)
@@ -104,8 +119,7 @@ print(f"  next_node_key: {rem1.get('next_node_key')}")
 
 # 8. Retry correct answer for Q1
 print(f"\n[8] RETRY CORRECT ANSWER FOR {start_key}")
-r = requests.post(f"{BASE}/nodes/{start_key}/submit", headers=headers, json={"index": 0, "confidence": "high"})
-result = r.json()
+result = submit_correct(start_key)
 check("Answer correct", result["is_correct"] is True)
 
 # 9. Syllabus - Week 2 still locked
@@ -118,13 +132,8 @@ check("Week 2 still locked after Q1", syllabus[1]["status"] == "locked")
 current_key = result.get("next_node_key")
 print(f"\n[10-12] FINISHING REMAINING WEEK 1 QUESTIONS STARTING AT {current_key}")
 while current_key and current_key != "FAR_w1_end":
-    r_sub = requests.post(f"{BASE}/nodes/{current_key}/submit", headers=headers, json={"index": 0, "confidence": "high"})
-    res_sub = r_sub.json()
+    res_sub = submit_correct(current_key)
     current_key = res_sub.get("next_node_key")
-    if not res_sub.get("is_correct") and current_key:
-        r_sub = requests.post(f"{BASE}/nodes/{current_key}/submit", headers=headers, json={"index": 0, "confidence": "high"})
-        res_sub = r_sub.json()
-        current_key = res_sub.get("next_node_key")
 
 # 13. Visit the end node to record completion
 end_key = "FAR_w1_end"
@@ -158,8 +167,7 @@ check("W2 Q1 has 2+ options", len(w2q1["options"]) >= 2)
 
 # 16. Answer W2 Q0 correctly
 print(f"\n[16] ANSWER {w2_start} CORRECTLY")
-r = requests.post(f"{BASE}/nodes/{w2_start}/submit", headers=headers, json={"index": 0, "confidence": "medium"})
-result = r.json()
+result = submit_correct(w2_start)
 check("W2 Q0 correct", result["is_correct"] is True)
 next_key = result["next_node_key"]
 
@@ -174,8 +182,7 @@ check("Week 3 locked", syllabus[2]["status"] == "locked", f"got {syllabus[2]['st
 current_key = next_key
 print(f"\n[18-20] FINISHING REMAINING WEEK 2 QUESTIONS STARTING AT {current_key}")
 while current_key and current_key != "FAR_w2_end":
-    r_sub = requests.post(f"{BASE}/nodes/{current_key}/submit", headers=headers, json={"index": 0, "confidence": "high"})
-    res_sub = r_sub.json()
+    res_sub = submit_correct(current_key)
     current_key = res_sub.get("next_node_key")
 
 # 21. Visit end node

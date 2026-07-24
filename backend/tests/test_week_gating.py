@@ -29,13 +29,16 @@ def _next_gate(nodes_by_key, start_key):
     return None
 
 
-def _complete_week(client, start_key, end_key, track="FAR"):
-    """Answer questions correctly (seed correct_idx is always 0) from start to end."""
+def _complete_week(client, db, start_key, end_key, track="FAR"):
+    """Answer questions correctly from start to end by querying each question's correct_answer_idx."""
+    nbk = _nodes_by_key(db)
     key, guard = start_key, 0
     while key and key != end_key and guard < 60:
         guard += 1
+        node = nbk.get(key)
+        correct_idx = node.correct_answer_idx if node else 0
         key = client.post(f"/api/v1/nodes/{key}/submit",
-                          json={"index": 0, "confidence": "high"}).json().get("next_node_key")
+                          json={"index": correct_idx, "confidence": "high"}).json().get("next_node_key")
     return key
 
 
@@ -89,23 +92,31 @@ def test_worked_example_node_proceeds_to_application(client):
     assert rem["remediation_html"]
 
 
-def test_wrong_answer_routes_to_remediation(client):
-    res = client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": 1, "confidence": "high"})
+def test_wrong_answer_routes_to_remediation(client, db):
+    nbk = _nodes_by_key(db)
+    node = nbk["FAR_w1_q0"]
+    wrong_idx = (node.correct_answer_idx + 1) % len(node.options_json)
+
+    res = client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": wrong_idx, "confidence": "high"})
     body = res.json()
     assert body["is_correct"] is False
     assert body["next_node_key"] == "FAR_w1_q0_rem"
 
 
-def test_visit_end_node_does_not_grant_completion(client):
+def test_visit_end_node_does_not_grant_completion(client, db):
     """The /visit endpoint is a UX acknowledgement only; it must never complete a
     week -- neither with zero work nor after only a wrong answer."""
+    nbk = _nodes_by_key(db)
+    node = nbk["FAR_w1_q0"]
+    wrong_idx = (node.correct_answer_idx + 1) % len(node.options_json)
+
     client.post("/api/v1/auth/user/reset")
 
     res = client.post("/api/v1/nodes/FAR_w1_end/visit")
     assert res.json()["completed"] is False
     assert client.get("/api/v1/courses/FAR/syllabus").json()[0]["status"] != "completed"
 
-    client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": 1, "confidence": "high"})
+    client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": wrong_idx, "confidence": "high"})
     res = client.post("/api/v1/nodes/FAR_w1_end/visit")
     assert res.json()["completed"] is False
     assert client.get("/api/v1/courses/FAR/syllabus").json()[0]["status"] != "completed"
@@ -113,11 +124,11 @@ def test_visit_end_node_does_not_grant_completion(client):
     client.post("/api/v1/auth/user/reset")
 
 
-def test_correct_answers_complete_week_and_unlock_next(client):
+def test_correct_answers_complete_week_and_unlock_next(client, db):
     """Completion is earned purely by correct answers (submit-side), no /visit."""
     client.post("/api/v1/auth/user/reset")
     syl = client.get("/api/v1/courses/FAR/syllabus").json()
-    last = _complete_week(client, syl[0]["start_node_key"], "FAR_w1_end")
+    last = _complete_week(client, db, syl[0]["start_node_key"], "FAR_w1_end")
     assert last == "FAR_w1_end"
 
     syl = client.get("/api/v1/courses/FAR/syllabus").json()

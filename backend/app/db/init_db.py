@@ -11,8 +11,28 @@ from backend.app.db.seed_questions import get_all_questions
 from backend.app.db.seed_cases import get_case_studies
 
 
+import random
+
+
+def _shuffle_options(q_key: str, options: list, default_correct_idx: int = 0) -> tuple:
+    """Deterministically shuffles options for a given node key so answer positions vary across questions."""
+    opts = [dict(opt) for opt in options]
+    rng = random.Random(q_key)
+    rng.shuffle(opts)
+    
+    correct_idx = default_correct_idx
+    for idx, opt in enumerate(opts):
+        if opt.get("isCorrect", False):
+            correct_idx = idx
+            break
+    return opts, correct_idx
+
+
 def _correct_option(q: dict) -> dict:
     opts = q.get("options", []) or []
+    for opt in opts:
+        if opt.get("isCorrect"):
+            return opt
     idx = q.get("correct_idx", 0)
     return opts[idx] if 0 <= idx < len(opts) else {"text": "", "explanation": ""}
 
@@ -121,11 +141,17 @@ def init_db(db: Session):
                 is_last = (i == len(q_list) - 1)
                 next_correct = f"{c_code}_w{w}_end" if is_last else f"{c_code}_w{w}_q{i+1}"
 
+                # Shuffle options so correct answer position varies dynamically per question
+                shuffled_opts, correct_idx = _shuffle_options(q_key, q["options"], q.get("correct_idx", 0))
+                q_copy = dict(q)
+                q_copy["options"] = shuffled_opts
+                q_copy["correct_idx"] = correct_idx
+
                 # Main Question -> a wrong answer goes to the worked-example remediation
                 db.add(LearningNode(
                     syllabus_id=s_id, node_key=q_key, concept_name=q["concept_name"],
-                    node_type="question", scenario_content=q["scenario"], options_json=q["options"],
-                    correct_answer_idx=q["correct_idx"], remediation_html=q["remediation"],
+                    node_type="question", scenario_content=q["scenario"], options_json=shuffled_opts,
+                    correct_answer_idx=correct_idx, remediation_html=q["remediation"],
                     next_correct_key=next_correct, next_incorrect_key=rem_key
                 ))
 
@@ -133,7 +159,7 @@ def init_db(db: Session):
                 db.add(LearningNode(
                     syllabus_id=s_id, node_key=rem_key, concept_name=f"{q['concept_name']} - Worked Example",
                     node_type="remediation", scenario_content="Here's how to solve it, step by step:",
-                    remediation_html=_worked_example_html(q),
+                    remediation_html=_worked_example_html(q_copy),
                     next_correct_key=app_key, next_incorrect_key=app_key
                 ))
 
@@ -141,7 +167,7 @@ def init_db(db: Session):
                 db.add(LearningNode(
                     syllabus_id=s_id, node_key=app_key, concept_name=f"{q['concept_name']} - Practical Application",
                     node_type="application", scenario_content="Apply the concept:",
-                    remediation_html=_application_html(q),
+                    remediation_html=_application_html(q_copy),
                     next_correct_key=q_key, next_incorrect_key=q_key
                 ))
             
@@ -164,12 +190,14 @@ def init_db(db: Session):
         db.add(cs)
         db.flush()
         
-        for cq in case_data["questions"]:
+        for idx_cq, cq in enumerate(case_data["questions"]):
+            cq_key = f"case_{cs.id}_q{idx_cq}"
+            shuffled_case_opts, case_correct_idx = _shuffle_options(cq_key, cq["options"], cq.get("correct_idx", 0))
             q = CaseQuestion(
                 case_study_id=cs.id,
                 question_text=cq["question_text"],
-                options_json=cq["options"],
-                correct_answer_idx=cq["correct_idx"],
+                options_json=shuffled_case_opts,
+                correct_answer_idx=case_correct_idx,
                 explanation_html=cq["explanation_html"]
             )
             db.add(q)

@@ -18,10 +18,14 @@ def test_get_syllabus(client):
     assert data[0]["status"] in ["unlocked", "in-progress"]
     assert data[1]["status"] == "locked"
 
-def test_remediation_does_not_unlock_week_2(client):
+def test_remediation_does_not_unlock_week_2(client, db):
+    from backend.app.models.curriculum import LearningNode
+    node = db.query(LearningNode).filter(LearningNode.node_key == "FAR_w1_q0").first()
+    wrong_idx = (node.correct_answer_idx + 1) % len(node.options_json)
+
     client.post("/api/v1/auth/user/reset")
     # Submit incorrect answer on the first question -> routed to its worked-example remediation
-    res1 = client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": 1, "confidence": "high"})
+    res1 = client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": wrong_idx, "confidence": "high"})
     assert res1.json()["next_node_key"] == "FAR_w1_q0_rem"
 
     # The remediation proceeds to a practical application, which loops back to the question
@@ -46,9 +50,12 @@ def test_get_node_security_strip(client):
         assert "isCorrect" not in opt
         assert "explanation" not in opt
 
-def test_submit_node_answer(client):
+def test_submit_node_answer(client, db):
+    from backend.app.models.curriculum import LearningNode
+    node = db.query(LearningNode).filter(LearningNode.node_key == "FAR_w1_q0").first()
+
     client.post("/api/v1/auth/user/reset")
-    res = client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": 0, "confidence": "high"})
+    res = client.post("/api/v1/nodes/FAR_w1_q0/submit", json={"index": node.correct_answer_idx, "confidence": "high"})
     assert res.status_code == 200
     data = res.json()
     assert data["is_correct"] is True
