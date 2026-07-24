@@ -2,20 +2,23 @@
 
 **Target Environment:** `https://demo.i-te.am/cpa/` (Fallback: `http://localhost:8005/`)  
 **Runtime Engine:** Browserless Chrome over CDP (Headless Chrome Automation)  
-**Document Version:** 2.0 (Unified Master)  
+**Document Version:** 2.1 (DevSecOps Hardened Edition)  
 **Last Updated:** 2026-07-24  
 
 ---
 
 ## 🎯 Executive Overview & Subagent Task Partitioning
 
-This master document unifies all Quality Assurance (QA), financial accuracy, responsive layout, progression gating, and candidate experience testing for the **CPA Interactive Study Guide** platform. 
+This master document unifies all Quality Assurance (QA), financial accuracy, responsive layout, progression gating, security auditing, and candidate experience testing for the **CPA Interactive Study Guide** platform. 
 
-To maximize test efficiency and prevent state conflicts in the database, testing is partitioned into **four specialized subagent roles**. Each subagent must execute its assigned section under a dedicated user identity.
+To maximize test efficiency and prevent database state bleed, testing is partitioned into **four specialized subagent roles**. 
+
+> [!NOTE]
+> **Subagent Concurrency**: Subagents execute **concurrently**, not sequentially. No subagent depends on another's runtime output.
 
 ```mermaid
 graph TD
-    Master[Unified QA Master Task] --> Agent1[Subagent 1: UI & Responsive Layout QA]
+    Master[Unified QA Master Task v2.1] --> Agent1[Subagent 1: UI & Responsive Layout QA]
     Master --> Agent2[Subagent 2: Financial Analyst & Codification QA]
     Master --> Agent3[Subagent 3: Adaptive Progression & Gating QA]
     Master --> Agent4[Subagent 4: Candidate Experience & Usability QA]
@@ -28,32 +31,50 @@ graph TD
 
 ---
 
-## 🔑 Global Subagent Authentication & Identity Protocol
+## 📋 Execution Prerequisites
+
+Prior to dispatching subagents, verify the following infrastructure prerequisites:
+1. **Browserless Chrome Service**: Headless Chrome over CDP container must be active and listening.
+2. **Target Accessibility**: Confirm `curl -I https://demo.i-te.am/cpa/` returns HTTP 200 OK.
+3. **Database Snapshot**: Ensure a database backup (`cpa_prep.db` or Postgres snapshot) is available before executing destructive reset tests.
+4. **Network Egress**: Subagents require outbound HTTP/HTTPS connectivity to verify external exhibit links (FASB ASC, Becker, Federal Reserve, COSO).
+
+---
+
+## 🔑 Global Subagent Authentication & Hardened Identity Protocol
 
 > [!IMPORTANT]
-> **Mandatory Unique Registration**:
-> Prior to executing any test steps, every subagent **MUST** register a distinct email address using the format below. This guarantees that user progress, attempts, heatmap analytics, and audit logs are segregated cleanly in SQLite/Postgres.
+> **Mandatory Unique Registration Format**:
+> Each subagent **MUST** register a distinct email address using an unambiguous **ISO 8601 UTC timestamp format without separators**: `YYYYMMDDTHHmmZ` (e.g. `20260724T1459Z`). If two subagents spawn within the same minute, append a single random digit (e.g., `qa_ui_20260724T1459Z1@cpa-qa.com`).
 
 | Subagent Role | Required Email Format | Test Password |
 |---------------|----------------------|---------------|
-| **Subagent 1: UI & Layout** | `qa_ui_agent_{timestamp_or_id}@cpa-qa.com` | `QAPass123!` |
-| **Subagent 2: Financial Analyst** | `qa_analyst_{timestamp_or_id}@cpa-qa.com` | `QAPass123!` |
-| **Subagent 3: Progression Gating** | `qa_curriculum_agent_{timestamp_or_id}@cpa-qa.com` | `QAPass123!` |
-| **Subagent 4: Candidate Experience** | `qa_candidate_{timestamp_or_id}@cpa-qa.com` | `QAPass123!` |
+| **Subagent 1: UI & Layout** | `qa_ui_{YYYYMMDDTHHmmZ}@cpa-qa.com` | `QAPass123!` |
+| **Subagent 2: Financial Analyst** | `qa_analyst_{YYYYMMDDTHHmmZ}@cpa-qa.com` | `QAPass123!` |
+| **Subagent 3: Progression Gating** | `qa_curriculum_{YYYYMMDDTHHmmZ}@cpa-qa.com` | `QAPass123!` |
+| **Subagent 4: Candidate Experience** | `qa_candidate_{YYYYMMDDTHHmmZ}@cpa-qa.com` | `QAPass123!` |
 
 **Registration Flow**:
 1. Open target URL (`https://demo.i-te.am/cpa/`).
 2. Click **Sign In / Register** in top header.
-3. Fill email and password, click **Register**.
+3. Input the formatted email and password, click **Register**.
 4. Confirm user identity badge renders in the top right header before starting test suite.
+
+---
+
+## 🛡️ Browser Automation Resilience & CDP Retry Protocol
+
+To prevent test flakiness in headless container environments:
+- **CDP Retry Policy:** Retry any failed UI element click, modal open, or viewport resize up to **3 times with a 2-second delay** before logging a `FAIL`.
+- **Page Crash Handling:** If the Browserless page target disconnects or crashes, log a `CRITICAL_RETRY_EVENT`, reopen the page target, re-authenticate under the subagent email, and resume from the failed step.
 
 ---
 
 ## 🤖 Section 1: Subagent 1 — UI, Responsive Layout & Console Health QA
 
 **Assigned Subagent Role:** `UI & Responsive Layout QA Agent`  
-**Identity:** `qa_ui_agent_{timestamp}@cpa-qa.com`  
-**Primary Focus:** Cross-viewport visual fidelity, modal responsiveness, button alignments, zero console exceptions.
+**Identity:** `qa_ui_{YYYYMMDDTHHmmZ}@cpa-qa.com`  
+**Primary Focus:** Cross-viewport visual fidelity, navbar scroll, modal breakpoints, zero console exceptions, accessibility.
 
 ### 1.1 Responsive Navigation Bar Audit (Regression Fix Check)
 - **Viewport Sizes:** `375px` (Mobile), `768px` (Tablet), `1280px` (Desktop).
@@ -81,18 +102,22 @@ graph TD
   6. Click **Return to Question**.
   7. **Verify:** Navigates back to the original question with identical scenario and choices intact.
 
-### 1.4 DevTools Console & Error Monitoring
-- **Requirement:** Zero uncaught JavaScript runtime exceptions or 404 network errors.
-- **Critical Regression Test:** Finish a week, land on the completion screen, then click **Return to Syllabus**.
-  - **Verify:** No `Uncaught TypeError: Cannot set properties of null (setting 'className') at switchView` occurs. View switches cleanly to the syllabus map.
+### 1.4 DevTools Console, Accessibility & Theme Audit
+- **Console Exceptions:** Zero uncaught JavaScript runtime errors or 404 network failures.
+- **Critical Regression Check:** Finish a week, land on the completion screen, then click **Return to Syllabus**.
+  - **Verify:** No `Uncaught TypeError: Cannot set properties of null (setting 'className') at switchView` occurs.
+- **Accessibility (a11y) Check (WCAG 2.1 AA):**
+  - Verify interactive buttons have focus indicators during keyboard tab navigation.
+  - Verify ARIA attributes on modals (`aria-modal="true"`, `role="dialog"`).
+- **High Contrast / Theme Check:** Verify glassmorphism toast elements remain legible under high contrast modes.
 
 ---
 
 ## ⚖️ Section 2: Subagent 2 — Senior Financial Analyst & Statutory Codification QA
 
 **Assigned Subagent Role:** `Senior Financial Analyst & CPA Quality Assurance Agent`  
-**Identity:** `qa_analyst_{timestamp}@cpa-qa.com`  
-**Primary Focus:** Technical accounting accuracy, FASB ASC / IRC / GAAS / COSO codification citations, live news feed ingestion, link security.
+**Identity:** `qa_analyst_{YYYYMMDDTHHmmZ}@cpa-qa.com`  
+**Primary Focus:** Technical accounting accuracy, FASB ASC / IRC / GAAS / COSO codification citations, live news feed ingestion, link security, performance latency.
 
 ### 2.1 Accounting Technical Accuracy & Codification Audit
 - **FASB ASC 606 (Revenue Recognition):**
@@ -121,20 +146,25 @@ graph TD
 
 ### 2.4 Live Market News Feed & Audit Endpoint (`/cases/live-news/feed`)
 - **API Endpoint:** `GET /cpa/api/v1/cases/live-news/feed` (or `/api/v1/cases/live-news/feed`).
-- **Verify:** Returns HTTP 200 OK with `status: "active"` and array of ingested live market case studies.
+- **Verify:** Returns HTTP 200 OK with `status: "active"` and array of ingested live market case studies. Response time must be $< 1.0\text{s}$.
 - **Verify LLM Dataset Audit Logs:** `GET /api/v1/cases/live-news/llm-dataset-logs` returns recorded prompts, completions, and latency.
 
-### 2.5 External Source Link Security Audit
-- Inspect all exhibit external hyperlinks (e.g. FASB ASC 606, Becker CPA 150-hour blog, COSO.org, Federal Reserve).
-- **Verify:** All external `<a>` tags include `target="_blank"` **and** `rel="noopener"` (or `rel="noreferrer"`).
-- **Verify:** No `javascript:` inline protocol injection risks exist.
+### 2.5 External Source Link Security & UTF-8 Encoding Audit
+- Execute CDP script to inspect all exhibit external hyperlinks:
+  ```js
+  const badLinks = Array.from(document.querySelectorAll('a[target="_blank"]'))
+    .filter(a => !a.rel.includes('noopener') && !a.rel.includes('noreferrer'));
+  console.log('Insecure links:', badLinks.length);
+  ```
+- **Verify:** `badLinks.length === 0`. Every external link MUST include `rel="noopener"` or `rel="noreferrer"`.
+- **UTF-8 Encoding Check:** Verify statutory symbols ($\S$, $\S\S$, $\dots$) render cleanly without Mojibake (`ï¿½`).
 
 ---
 
 ## 🔒 Section 3: Subagent 3 — Adaptive Curriculum & Progression Gating QA
 
 **Assigned Subagent Role:** `Adaptive Progression & Curriculum Gating Agent`  
-**Identity:** `qa_curriculum_agent_{timestamp}@cpa-qa.com`  
+**Identity:** `qa_curriculum_{YYYYMMDDTHHmmZ}@cpa-qa.com`  
 **Primary Focus:** Graph-walk invariant verification, gating security, week unlock sequencing, state reset integrity.
 
 ### 3.1 Gating Invariant 1: Wrong Answer Never Completes a Week
@@ -156,18 +186,18 @@ graph TD
 - Week $N+1$ MUST unlock ONLY after Week $N$ status is `completed`.
 - Confirm Week 2 `start_node_key` is `null` while Week 2 is `locked`.
 
-### 3.5 User Progress & Attempt Reset Integrity
-- Trigger `POST /api/v1/auth/user/reset`.
-- **Verify:** Wipes `UserProgress`, `TBSAttempt`, and `CaseAttempt` database records.
-- **Verify:** Resets syllabus state back to initial state (Week 1 `in-progress`, Weeks 2–7 `locked`).
+### 3.5 Scoped Progress Reset Integrity vs Endpoint Warnings
+- **Reset API Endpoint:** `POST /api/v1/auth/user/reset`.
+- > [!WARNING]
+  > **Shared Environment Scope Caution**: On shared staging environments, `POST /auth/user/reset` wipes database progress for the authenticated session. Confirm reset affects **only** the subagent's active session data without altering other registered candidates.
 
 ---
 
 ## 🎓 Section 4: Subagent 4 — Candidate Experience & Usability QA
 
 **Assigned Subagent Role:** `Candidate Experience & Usability Agent`  
-**Identity:** `qa_candidate_{timestamp}@cpa-qa.com`  
-**Primary Focus:** End-to-end student journey, interactive tools, spaced repetition flashcards, UI micro-animations, toast feedback.
+**Identity:** `qa_candidate_{YYYYMMDDTHHmmZ}@cpa-qa.com`  
+**Primary Focus:** End-to-end student journey, interactive tools, spaced repetition flashcard persistence, UI micro-animations, toast feedback.
 
 ### 4.1 Study Hub & Structured Modules Audit
 - Open **Study & Prep Hub**.
@@ -178,10 +208,11 @@ graph TD
   - `reg-corporate-nol` (Corporate Taxation & NOL)
   - `reg-ethics-circular230` (Treasury Circular 230 & Ethics)
 
-### 4.2 Concept Flashcards & Spaced Repetition Box System
+### 4.2 Concept Flashcards & SRS Persistence Verification (M7)
 - Open **Concept Flashcards**.
-- Verify cards load across FAR, AUD, and REG domains.
-- Flip card, rate memory recall (Hard, Good, Easy), and verify box assignment advances (Box 1 $\rightarrow$ Box 2).
+- Flip a card (e.g. ASC 606 5-Step Model) and rate recall as **Easy** (advances card from Box 1 $\rightarrow$ Box 2).
+- **SRS Persistence Test:** Reload page or log out and log back in.
+- **Verify:** Fetch `GET /api/v1/flashcards` — confirm card box state persists as Box 2 in the database.
 
 ### 4.3 Task-Based Simulations (TBS) & Interactive Calculators
 - Open **Task-Based Simulations (TBS)**.
@@ -199,17 +230,42 @@ graph TD
 
 ---
 
+## 🎯 Acceptance Criteria & Pass/Fail Threshold Matrix
+
+| Section | Domain | Mandatory PASS Threshold | Failure Condition (FAIL) |
+|---------|--------|--------------------------|--------------------------|
+| **1** | UI & Layout | 0 uncaught JS errors; 0 page-level horizontal overflow at 375px | Any uncaught `switchView` exception or body horizontal scrollbar |
+| **2** | Financial Analyst | 100% statutory citation accuracy; 0 insecure `target="_blank"` links | Incorrect ASC/IRC citation or link missing `rel="noopener"`/`noreferrer"` |
+| **3** | Progression Gating | 100% gating invariant compliance; `/visit` on end node returns `completed: false` | Wrong answer reaching end node or unearned week unlock |
+| **4** | Candidate Experience | Flashcard SRS box state persists after reload; toast feedback renders | SRS box state lost on reload or imbalanced journal entry scored as correct |
+| **Global** | Latency Benchmarks | Page load $< 2.5\text{s}$, API endpoints $< 1.0\text{s}$, Ingestion $< 5.0\text{s}$ | Any core API endpoint taking $> 5.0\text{s}$ to respond |
+
+---
+
+## 🧹 Post-Execution Cleanup Protocol (Mandatory)
+
+After all subagents complete execution and submit reports:
+1. Subagents must invoke user reset: `POST /api/v1/auth/user/reset` under their active session.
+2. Alternatively, run SQL cleanup for testing accounts:
+   ```sql
+   DELETE FROM "UserProgress" WHERE user_id IN (SELECT id FROM "User" WHERE email LIKE '%@cpa-qa.com');
+   DELETE FROM "TBSAttempt" WHERE user_id IN (SELECT id FROM "User" WHERE email LIKE '%@cpa-qa.com');
+   DELETE FROM "CaseAttempt" WHERE user_id IN (SELECT id FROM "User" WHERE email LIKE '%@cpa-qa.com');
+   ```
+3. Verify zero orphaned test attempt records remain for `@cpa-qa.com` addresses.
+4. Log cleanup confirmation in the master report appendix.
+
+---
+
 ## 📊 Unified Output Schema & Reporting Templates
 
 Every subagent MUST compile its execution results into a markdown artifact inside `blueprints/` using the standardized schema below.
-
-### Standard Subagent Markdown Report Template
 
 ```markdown
 # [Subagent Name] Execution Report
 
 **Role:** [UI / Financial Analyst / Progression Gating / Candidate Experience]  
-**Identity:** `qa_[role]_{timestamp}@cpa-qa.com`  
+**Identity:** `qa_[role]_{YYYYMMDDTHHmmZ}@cpa-qa.com`  
 **Target:** `https://demo.i-te.am/cpa/`  
 **Execution Status:** [PASS / FAIL / PARTIAL]  
 
@@ -220,9 +276,9 @@ Every subagent MUST compile its execution results into a markdown artifact insid
 - [x] Check 2
 
 ## 2. Detailed Findings & Evidentiary Log
-| Test ID | Area | Status | Evidence Label | Observations |
-|---------|------|--------|----------------|--------------|
-| T-101   | ...  | PASS   | browser-verified | ... |
+| Test ID | Area | Status | Evidence Label | Observations | Latency (ms) |
+|---------|------|--------|----------------|--------------|--------------|
+| T-101   | ...  | PASS   | browser-verified | ...        | 120ms        |
 
 ## 3. Discrepancies & Defect Reports (If Any)
 ### [Defect #1] Title
@@ -231,7 +287,10 @@ Every subagent MUST compile its execution results into a markdown artifact insid
 - **Reproduction:** Steps to reproduce
 - **Expected vs Actual:** Explanation
 
-## 4. Final Sign-off
+## 4. Post-Execution Cleanup Confirmation
+- [x] Session data wiped / SQL cleanup executed cleanly.
+
+## 5. Final Sign-off
 - **Summary:** Concise conclusion.
 ```
 
@@ -259,4 +318,4 @@ with urllib.request.urlopen(req) as resp:
 
 ---
 
-*Unified Master QA Specification complete. Ready for Browserless CDP subagent execution.* 🛡️
+*Unified Master QA Specification v2.1 complete. DevSecOps Hardened & Ready for Browserless CDP execution.* 🛡️
