@@ -283,7 +283,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between py-2 gap-2 min-w-max">
                 <nav class="flex space-x-1 sm:space-x-2 shrink-0">
-                    <button onclick="switchView('adaptive')" id="tab-adaptive" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-sky-50 text-sky-700 border border-sky-200">
+                    <button onclick="switchView(isLoggedInUser ? 'dashboard' : 'home')" id="tab-home" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-sky-50 text-sky-700 border border-sky-200">
+                        <i class="fa-solid fa-house text-sky-600"></i> <span id="tab-home-label">Home</span>
+                    </button>
+                    <button onclick="switchView('adaptive')" id="tab-adaptive" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100">
                         <i class="fa-solid fa-route text-sky-600"></i> Adaptive Learn Path
                     </button>
                     <button onclick="switchView('study')" id="tab-study" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100">
@@ -314,8 +317,269 @@
     <!-- Main Content Area -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
+        <!-- Public Marketing Landing Page View (Non-Logged-In Users / Guests) -->
+        <div id="view-home" class="space-y-12 fade-in">
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 text-white p-8 sm:p-12 border border-slate-800 shadow-xl">
+                <div class="relative z-10 max-w-3xl space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-300 text-xs font-mono">
+                        <i class="fa-solid fa-sparkles"></i> 2026 AICPA Exam Format Ready
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                        Master the CPA Exam with <span class="bg-gradient-to-r from-sky-400 to-indigo-300 bg-clip-text text-transparent">Bayesian Adaptive Intelligence</span>
+                    </h1>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        Empower your study routine with real-time confidence calibration, interactive Task-Based Simulations (TBS), instant NVIDIA AI FASB/IRC codification lookups, and seamless passkey authentication across all devices.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                        <button onclick="switchView('adaptive')" class="px-6 py-3 bg-sky-500 hover:bg-sky-400 text-white font-bold text-sm rounded-xl shadow-lg shadow-sky-500/30 transition flex items-center gap-2">
+                            <span>Start Free Candidate Practice</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button onclick="openQRModal()" class="px-6 py-3 bg-slate-800/80 hover:bg-slate-700/80 text-sky-300 font-semibold text-sm rounded-xl border border-slate-700 transition flex items-center gap-2">
+                            <i class="fa-solid fa-qrcode"></i>
+                            <span>Scan Desktop Passkey</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-3">
+                    <div class="w-10 h-10 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-route"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">Bayesian Adaptive Engine</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Dynamically measures your confidence calibration and accuracy to present worked examples, remediations, or high-difficulty CPA exam questions.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-3">
+                    <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-table-cells"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">AICPA Task-Based Simulations</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Practice Excel-style financial statement spreadsheets, journal entries, and statutory tax calculations formatted exactly like the actual CPA exam environment.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-3">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">NVIDIA FASB / IRC AI Agent</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Integrated AI assistant provides direct FASB ASC codification and Internal Revenue Code citations with live market context for complex scenarios.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Exam Tracks Overview -->
+            <div class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900">Explore CPA Core & Discipline Exam Tracks</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- FAR Track -->
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+                        <div class="p-6 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2.5 py-1 bg-sky-100 text-sky-800 font-mono font-bold text-xs rounded">FAR</span>
+                                <span class="text-xs text-slate-500 font-mono">7 Weeks • Core</span>
+                            </div>
+                            <h3 class="font-bold text-slate-900 text-base">Financial Accounting & Reporting</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Covers ASC 606 revenue recognition, ASC 842 leases, GAAP accruals, inventory valuation, and consolidation balance sheets.
+                            </p>
+                        </div>
+                        <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                            <button onclick="switchExamTrack('FAR'); switchView('adaptive');" class="text-xs font-bold text-sky-600 hover:text-sky-800 flex items-center gap-1">
+                                <span>Launch FAR Demo</span>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AUD Track -->
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+                        <div class="p-6 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2.5 py-1 bg-indigo-100 text-indigo-800 font-mono font-bold text-xs rounded">AUD</span>
+                                <span class="text-xs text-slate-500 font-mono">6 Weeks • Core</span>
+                            </div>
+                            <h3 class="font-bold text-slate-900 text-base">Auditing & Attestation</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Focuses on AICPA PCAOB standards, internal control risk assessments, audit reports, sampling methods, and professional ethics.
+                            </p>
+                        </div>
+                        <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                            <button onclick="switchExamTrack('AUD'); switchView('adaptive');" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                <span>Launch AUD Demo</span>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- REG Track -->
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+                        <div class="p-6 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-mono font-bold text-xs rounded">REG</span>
+                                <span class="text-xs text-slate-500 font-mono">6 Weeks • Core</span>
+                            </div>
+                            <h3 class="font-bold text-slate-900 text-base">Taxation & Business Law</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Covers IRC statutory exclusions, corporate §351 formations, partnership basis distributions, §172 NOL rules, and Circular 230 ethics.
+                            </p>
+                        </div>
+                        <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                            <button onclick="switchExamTrack('REG'); switchView('adaptive');" class="text-xs font-bold text-emerald-600 hover:text-emerald-800 flex items-center gap-1">
+                                <span>Launch REG Demo</span>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Candidate Learning Hub Dashboard View (Logged-In Users) -->
+        <div id="view-dashboard" class="space-y-8 fade-in hidden">
+            <!-- Welcome Header & Candidate Overview -->
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 sm:p-8 text-white border border-slate-700 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="space-y-2">
+                    <div class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-sky-400">
+                        <i class="fa-solid fa-circle-user"></i> Active Candidate Profile
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold">Welcome Back, <span id="dash-user-email" class="text-sky-300">Candidate</span></h1>
+                    <p class="text-xs text-slate-300">Target CPA Exam Readiness & Adaptive Progress Overview</p>
+                </div>
+
+                <div class="flex items-center gap-4 bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                    <div class="text-center">
+                        <span class="block text-[10px] text-slate-400 font-mono uppercase">Overall Mastery</span>
+                        <span id="dash-mastery-text" class="text-2xl font-bold font-mono text-sky-400">0%</span>
+                    </div>
+                    <div class="w-px h-8 bg-slate-700"></div>
+                    <div class="text-center">
+                        <span class="block text-[10px] text-slate-400 font-mono uppercase">Study Streak</span>
+                        <span id="dash-streak-text" class="text-2xl font-bold font-mono text-amber-400">0d</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Study Module Spotlight -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div class="space-y-2 max-w-xl">
+                    <span class="px-2.5 py-1 bg-sky-100 text-sky-800 text-xs font-bold rounded-md font-mono uppercase">Current Active Track: <span id="dash-current-track">FAR</span></span>
+                    <h2 class="text-lg font-bold text-slate-900" id="dash-active-module-title">FAR Week 1: Accounting Cycle</h2>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Continue your adaptive question queue, worked examples, and practical applications. The Bayesian engine will calibrate question difficulty based on your performance.
+                    </p>
+                </div>
+                <button onclick="switchView('adaptive')" class="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 shrink-0">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Resume Adaptive Path</span>
+                </button>
+            </div>
+
+            <!-- Exam Readiness Track Cards Grid -->
+            <div class="space-y-4">
+                <h3 class="text-base font-bold text-slate-900">Exam Track Progress & Readiness</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- FAR Card -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm text-slate-900">Financial (FAR)</span>
+                            <span class="text-xs font-mono bg-sky-50 text-sky-700 px-2 py-0.5 rounded border border-sky-200 font-semibold">Active</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs text-slate-600 font-medium">
+                                <span>Syllabus Progress</span>
+                                <span class="font-mono font-bold">Week 1 of 7</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="bg-sky-500 h-2 rounded-full" style="width: 15%"></div>
+                            </div>
+                        </div>
+                        <button onclick="switchExamTrack('FAR'); switchView('adaptive');" class="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition">
+                            Open FAR Syllabus
+                        </button>
+                    </div>
+
+                    <!-- AUD Card -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm text-slate-900">Auditing (AUD)</span>
+                            <span class="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200 font-semibold">Available</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs text-slate-600 font-medium">
+                                <span>Syllabus Progress</span>
+                                <span class="font-mono font-bold">0 of 6 Weeks</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="bg-indigo-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <button onclick="switchExamTrack('AUD'); switchView('adaptive');" class="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition">
+                            Switch to AUD
+                        </button>
+                    </div>
+
+                    <!-- REG Card -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm text-slate-900">Regulation (REG)</span>
+                            <span class="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200 font-semibold">Available</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs text-slate-600 font-medium">
+                                <span>Syllabus Progress</span>
+                                <span class="font-mono font-bold">0 of 6 Weeks</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <button onclick="switchExamTrack('REG'); switchView('adaptive');" class="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition">
+                            Switch to REG
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Launch Hub Tiles -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <button onclick="switchView('simulation')" class="p-4 bg-white hover:bg-sky-50/50 rounded-xl border border-slate-200 text-left transition space-y-2 shadow-sm group">
+                    <i class="fa-solid fa-table-cells text-sky-600 text-xl group-hover:scale-110 transition-transform"></i>
+                    <h4 class="font-bold text-slate-900 text-xs">Task Simulations (TBS)</h4>
+                    <p class="text-[11px] text-slate-500">Practice Excel spreadsheets & journal entries</p>
+                </button>
+
+                <button onclick="switchView('casestudies')" class="p-4 bg-white hover:bg-indigo-50/50 rounded-xl border border-slate-200 text-left transition space-y-2 shadow-sm group">
+                    <i class="fa-solid fa-book-open-reader text-indigo-600 text-xl group-hover:scale-110 transition-transform"></i>
+                    <h4 class="font-bold text-slate-900 text-xs">Case Studies</h4>
+                    <p class="text-[11px] text-slate-500">Solve real-world corporate accounting cases</p>
+                </button>
+
+                <button onclick="switchView('flashcards')" class="p-4 bg-white hover:bg-amber-50/50 rounded-xl border border-slate-200 text-left transition space-y-2 shadow-sm group">
+                    <i class="fa-solid fa-layer-group text-amber-600 text-xl group-hover:scale-110 transition-transform"></i>
+                    <h4 class="font-bold text-slate-900 text-xs">Concept Flashcards</h4>
+                    <p class="text-[11px] text-slate-500">Master key ASC 606 & IRC mnemonics</p>
+                </button>
+
+                <button onclick="switchView('analytics')" class="p-4 bg-white hover:bg-emerald-50/50 rounded-xl border border-slate-200 text-left transition space-y-2 shadow-sm group">
+                    <i class="fa-solid fa-chart-line text-emerald-600 text-xl group-hover:scale-110 transition-transform"></i>
+                    <h4 class="font-bold text-slate-900 text-xs">Analytics & Diagnostics</h4>
+                    <p class="text-[11px] text-slate-500">Track accuracy trends & confidence calibration</p>
+                </button>
+            </div>
+        </div>
+        
         <!-- Adaptive View Container -->
-        <div id="view-adaptive" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div id="view-adaptive" class="grid grid-cols-1 lg:grid-cols-12 gap-6 hidden">
             
             <!-- Sidebar: Multi-Week Curriculum Selector -->
             <div class="lg:col-span-4 space-y-4">
@@ -1038,12 +1302,15 @@
             document.querySelectorAll('.nav-tab').forEach(tab => {
                 tab.className = "nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 text-slate-600 hover:bg-slate-100";
             });
-            const activeTab = document.getElementById(`tab-${viewName}`);
+            
+            // Highlight active tab (maps home/dashboard to tab-home)
+            const tabId = (viewName === 'home' || viewName === 'dashboard') ? 'tab-home' : `tab-${viewName}`;
+            const activeTab = document.getElementById(tabId);
             if (activeTab) {
                 activeTab.className = "nav-tab px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-sky-50 text-sky-700 border border-sky-200";
             }
 
-            ['adaptive', 'study', 'simulation', 'flashcards', 'analytics'].forEach(v => {
+            ['home', 'dashboard', 'adaptive', 'study', 'simulation', 'casestudies', 'flashcards', 'analytics'].forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 if (el) el.classList.add('hidden');
             });
@@ -1177,10 +1444,24 @@
                 const token = localStorage.getItem('cpa_jwt_token');
                 const isStudentFallback = (profile.user && profile.user.email === "student@cpa.com" && !token);
 
+                const tabHomeLabel = document.getElementById('tab-home-label');
+                const tabHomeIcon = document.getElementById('tab-home-icon');
+
                 if (profile.user && !isStudentFallback) {
                     isLoggedInUser = true;
                     document.getElementById('user-email-label').innerText = profile.user.email;
                     document.getElementById('settings-email').value = profile.user.email;
+                    
+                    const dashEmail = document.getElementById('dash-user-email');
+                    if (dashEmail) dashEmail.innerText = profile.user.email;
+                    const dashMastery = document.getElementById('dash-mastery-text');
+                    if (dashMastery) dashMastery.innerText = Math.round(profile.mastery_percent) + "%";
+                    const dashStreak = document.getElementById('dash-streak-text');
+                    if (dashStreak) dashStreak.innerText = profile.streak_days + "d";
+
+                    if (tabHomeLabel) tabHomeLabel.innerText = "Dashboard";
+                    if (tabHomeIcon) tabHomeIcon.className = "fa-solid fa-gauge-high text-sky-600";
+
                     if (profile.user.target_exam_date) {
                         document.getElementById('settings-exam-date').value = profile.user.target_exam_date.split('T')[0];
                     }
@@ -1189,6 +1470,9 @@
                 } else {
                     isLoggedInUser = false;
                     document.getElementById('user-email-label').innerText = "Sign In / Register";
+                    if (tabHomeLabel) tabHomeLabel.innerText = "Home";
+                    if (tabHomeIcon) tabHomeIcon.className = "fa-solid fa-house text-sky-600";
+
                     const qrBtn = document.getElementById('qr-header-btn');
                     if (qrBtn) qrBtn.classList.remove('hidden');
                 }
@@ -2121,6 +2405,13 @@
             await renderSyllabus();
             await renderNode(currentNodeId);
             await loadCaseStudies(currentTrack);
+
+            // Navigate to Dashboard for logged in candidates, or Home landing page for guests
+            if (isLoggedInUser) {
+                await switchView('dashboard');
+            } else {
+                await switchView('home');
+            }
         };
         // --- CASE STUDIES LOGIC ---
         let currentCaseStudyId = null;
