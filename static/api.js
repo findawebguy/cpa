@@ -48,7 +48,22 @@ class CPAApiClient {
         };
 
         try {
-            const response = await fetch(url, config);
+            let response = await fetch(url, config);
+
+            // Auto-recovery for expired/stale tokens: clear token and retry as guest
+            if (response.status === 401 && this.token && !endpoint.includes("/auth/login")) {
+                console.warn(`[API] 401 Unauthorized on ${endpoint}. Token expired/invalid. Clearing token & retrying...`);
+                this.setToken(null);
+                const retryConfig = {
+                    ...options,
+                    headers: {
+                        ...this.getHeaders(),
+                        ...(options.headers || {})
+                    }
+                };
+                response = await fetch(url, retryConfig);
+            }
+
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({ detail: "Network error" }));
                 let msg = "HTTP Error " + response.status;

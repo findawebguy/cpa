@@ -23,28 +23,30 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=F
 active_qr_tickets: Dict[str, Dict[str, Any]] = {}
 
 def get_current_user(db: Session = Depends(get_db), token: Optional[str] = Depends(oauth2_scheme)) -> User:
-    if not token:
-        user = db.query(User).filter(User.email == "student@cpa.com").first()
-        if user:
-            return user
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
+    if token:
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            user_id_str: str = payload.get("sub")
+            if user_id_str is not None:
+                user_id = int(user_id_str)
+                user = db.query(User).filter(User.id == user_id).first()
+                if user:
+                    return user
+        except (JWTError, ValueError):
+            pass # Invalid/expired token -> fall through to guest candidate auto-login
+
+    # Guest candidate auto-login / auto-provisioning
+    guest_user = db.query(User).filter(User.email == "student@cpa.com").first()
+    if not guest_user:
+        guest_user = User(
+            email="student@cpa.com",
+            password_hash=get_password_hash("guestpass123"),
+            target_exam_date=datetime.now()
         )
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        user_id_str: str = payload.get("sub")
-        if user_id_str is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        user_id = int(user_id_str)
-    except (JWTError, ValueError):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
-    
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return user
+        db.add(guest_user)
+        db.commit()
+        db.refresh(guest_user)
+    return guest_user
 
 @router.post("/register", response_model=Token)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
