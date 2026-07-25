@@ -1277,11 +1277,12 @@
 
         // Web Audio API Synthesizer (Lazy-instantiated on user gesture)
         let audioCtx = null;
-        function initAudioOnUserGesture() {
+        function initAudioOnUserGesture(e) {
+            if (e && !e.isTrusted) return;
             if (!audioCtx) {
                 try {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                } catch(e) {}
+                } catch(err) {}
             }
             if (audioCtx && audioCtx.state === 'suspended') {
                 audioCtx.resume().catch(() => {});
