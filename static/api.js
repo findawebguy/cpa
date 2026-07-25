@@ -23,7 +23,8 @@ class CPAApiClient {
             document.cookie = `cpa_jwt_token=${token}; path=/; max-age=2592000; SameSite=Lax`;
         } else {
             localStorage.removeItem("cpa_jwt_token");
-            document.cookie = `cpa_jwt_token=; path=/; max-age=0`;
+            document.cookie = `cpa_jwt_token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+            document.cookie = `cpa_jwt_token=; path=/cpa; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
         }
     }
 
@@ -106,6 +107,13 @@ class CPAApiClient {
             this.setToken(res.access_token);
         }
         return res;
+    }
+
+    async logout() {
+        try {
+            await this.request("/auth/logout", { method: "POST" });
+        } catch(e) {}
+        this.setToken(null);
     }
 
     async getUserProfile() {

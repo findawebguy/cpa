@@ -277,10 +277,12 @@ def reset_user_progress(
     return {"status": "success", "message": "User study progress and syllabus state successfully reset for testing."}
 
 @router.post("/logout")
-def logout_user():
+def logout_user(response: Response):
     """
-    Session Logout Endpoint: Invalidates client-side authentication token session.
+    Session Logout Endpoint: Invalidates client-side authentication token session and clears cookies.
     """
+    response.delete_cookie(key="cpa_jwt_token", path="/")
+    response.delete_cookie(key="cpa_jwt_token", path="/cpa")
     return {"status": "success", "message": "Successfully logged out session."}
 
 @router.post("/admin/reseed")

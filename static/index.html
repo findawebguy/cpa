@@ -2206,12 +2206,16 @@
             }
         }
 
-        function performLogout() {
+        async function performLogout() {
             playSound('click');
-            window.cpaApi.setToken(null);
+            if (window.cpaApi) {
+                await window.cpaApi.logout();
+            }
             closeSettingsModal();
             isLoggedInUser = false;
-            location.reload();
+            await refreshUserProfile();
+            await switchView('home', false);
+            showToast('Successfully logged out session.', 'info');
         }
 
         async function performResetProgress() {
