@@ -3,7 +3,7 @@ from backend.app.models.curriculum import LearningNode
 from backend.app.models.user import User
 
 def test_adaptive_engine_high_confidence_incorrect(db):
-    user = db.query(User).filter(User.email == "student@cpa.com").first()
+    user = db.query(User).filter(User.email == "student@example.com").first()
     node = db.query(LearningNode).filter(LearningNode.node_key == "FAR_w1_q0").first()
     wrong_idx = (node.correct_answer_idx + 1) % len(node.options_json)
 
@@ -22,7 +22,7 @@ def test_adaptive_engine_high_confidence_incorrect(db):
     assert meta["evaluation_tag"] == "HIGH_OVERCONFIDENCE_ERROR"
 
 def test_adaptive_engine_high_confidence_correct(db):
-    user = db.query(User).filter(User.email == "student@cpa.com").first()
+    user = db.query(User).filter(User.email == "student@example.com").first()
     node = db.query(LearningNode).filter(LearningNode.node_key == "FAR_w1_q0").first()
 
     # Submit correct option with HIGH confidence -> Acceleration (+10% mastery)

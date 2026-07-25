@@ -91,10 +91,27 @@ def reseed_curriculum(db: Session):
 def init_db(db: Session):
     Base.metadata.create_all(bind=engine)
 
-    demo_user = db.query(User).filter(User.email == "student@cpa.com").first()
+    # SQLite schema auto-migration helper for is_admin column
+    try:
+        from sqlalchemy import text
+        db.execute(text("SELECT is_admin FROM users LIMIT 1"))
+    except Exception:
+        try:
+            db.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0"))
+            db.commit()
+        except Exception:
+            pass
+
+    demo_user = db.query(User).filter(User.email == "student@example.com").first()
     if not demo_user:
-        demo_user = User(email="student@cpa.com", password_hash=get_password_hash("pass123"))
+        demo_user = User(email="student@example.com", password_hash=get_password_hash("pass123"), is_admin=False)
         db.add(demo_user)
+        db.commit()
+
+    admin_user = db.query(User).filter(User.email == "admin@example.com").first()
+    if not admin_user:
+        admin_user = User(email="admin@example.com", password_hash=get_password_hash("adminpass123"), is_admin=True)
+        db.add(admin_user)
         db.commit()
 
     if db.query(Course).first():

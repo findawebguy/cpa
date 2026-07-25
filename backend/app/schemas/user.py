@@ -19,6 +19,7 @@ class UserLogin(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
+    is_admin: bool = False
     target_exam_date: Optional[datetime] = None
     created_at: datetime
 

@@ -70,6 +70,7 @@ def submit_case_study(
         }
 
     score = (correct_count / total_questions) * 100.0
+    passed = (score >= 75.0)
 
     # Save attempt
     attempt = CaseAttempt(
@@ -90,15 +91,16 @@ def submit_case_study(
 
 
 from backend.app.schemas.case_study import CaseStudyResponse, CaseStudySubmitRequest, CaseStudySubmitResponse, LiveNewsIngestionRequest
+from backend.app.api.v1.endpoints.auth import get_current_admin_user
 
 @router.post("/live-news/trigger-daily-ingestion")
 def trigger_daily_live_news_ingestion(
     body: Optional[LiveNewsIngestionRequest] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """
-    Triggers the Senior Financial Analyst Agent (NVIDIA NIM)
+    Triggers the Senior Financial Analyst Agent
     to review daily market news and insert into the database ONLY if approved.
     Enforces a strict 24-hour rate limit (once daily at most).
     """
@@ -123,7 +125,7 @@ def trigger_daily_live_news_ingestion(
 @router.get("/live-news/llm-dataset-logs")
 def get_llm_dataset_logs(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """
     Returns collected LLM interaction datasets from the Senior Financial Analyst Agent for future model fine-tuning & dataset auditing.

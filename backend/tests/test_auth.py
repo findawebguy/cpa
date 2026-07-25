@@ -1,5 +1,5 @@
 def test_register_and_login(client):
-    email = "newstudent@cpa.com"
+    email = "newstudent@example.com"
     password = "securepassword123"
 
     # Register
@@ -23,11 +23,17 @@ def test_user_profile(client):
     assert "streak_days" in data
 
 def test_update_user_profile(client):
-    new_email = "updated_student@cpa.com"
+    new_email = "updated_student@example.com"
     res = client.put("/api/v1/auth/user/profile", json={"email": new_email})
     assert res.status_code == 200
     data = res.json()
     assert data["email"] == new_email
+
+def test_admin_endpoint_requires_admin_role(client):
+    # Non-admin user (guest student) attempting admin reseed -> 403 Forbidden
+    res = client.post("/api/v1/auth/admin/reseed")
+    assert res.status_code == 403
+    assert "Admin privileges required" in res.json()["detail"]
 
 def test_guest_session_migration(client):
     payload = {

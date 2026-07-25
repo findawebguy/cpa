@@ -8,6 +8,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     DATABASE_URL: str = "sqlite:///./cpa_prep.db"
     NVIDIA_API_KEY: str = ""
+    CORS_ORIGINS: list[str] = [
+        "https://demo.i-te.am",
+        "http://localhost:8005",
+        "http://127.0.0.1:8005"
+    ]
 
     model_config = SettingsConfigDict(
         env_file=".env",

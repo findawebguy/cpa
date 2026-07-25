@@ -36,10 +36,10 @@ def get_current_user(db: Session = Depends(get_db), token: Optional[str] = Depen
             pass # Invalid/expired token -> fall through to guest candidate auto-login
 
     # Guest candidate auto-login / auto-provisioning
-    guest_user = db.query(User).filter(User.email == "student@cpa.com").first()
+    guest_user = db.query(User).filter(User.email == "student@example.com").first()
     if not guest_user:
         guest_user = User(
-            email="student@cpa.com",
+            email="student@example.com",
             password_hash=get_password_hash("guestpass123"),
             target_exam_date=datetime.now()
         )
@@ -47,6 +47,14 @@ def get_current_user(db: Session = Depends(get_db), token: Optional[str] = Depen
         db.commit()
         db.refresh(guest_user)
     return guest_user
+
+def get_current_admin_user(current_user: User = Depends(get_current_user)) -> User:
+    if not current_user or not getattr(current_user, "is_admin", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required for this operation"
+        )
+    return current_user
 
 @router.post("/register", response_model=Token)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
@@ -277,7 +285,7 @@ def logout_user():
 
 @router.post("/admin/reseed")
 def admin_reseed_curriculum(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -292,7 +300,7 @@ def admin_reseed_curriculum(
 @router.post("/admin/complete-week")
 def admin_complete_week(
     body: dict,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -345,7 +353,7 @@ def admin_complete_week(
 
 @router.get("/admin/syllabus-overview")
 def admin_syllabus_overview(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
     """

@@ -928,6 +928,31 @@
 
     </main>
 
+    <!-- Platform Footer with Educational Use & Non-Affiliation Disclaimer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-8 border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">CPA</div>
+                    <span class="font-bold text-slate-200 text-sm">CPA Adaptive Path Platform</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs text-slate-400">
+                    <span>Educational Prep Portal</span>
+                    <span>•</span>
+                    <span>2026 AICPA Format Alignment</span>
+                </div>
+            </div>
+            <div class="text-[11px] leading-relaxed text-slate-400 space-y-2">
+                <p>
+                    <strong>Legal & Educational Disclaimer:</strong> CPA Adaptive Path is an independent educational examination preparation platform. It is not affiliated with, endorsed by, or sponsored by the American Institute of Certified Public Accountants (AICPA), the National Association of State Boards of Accountancy (NASBA), CPA.com, or Becker Professional Education. CPA® is a registered trademark of the AICPA.
+                </p>
+                <p>
+                    All content provided on this platform is for educational and study reference purposes only and does not constitute formal accounting, auditing, tax, or legal advice. Users should verify current regulatory standards with primary governing authorities and licensed professionals.
+                </p>
+            </div>
+        </div>
+    </footer>
+
     <!-- Case Study Viewer Modal (Split Screen) -->
     <div id="casestudy-modal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 lg:p-8">
         <div class="bg-white rounded-2xl w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
@@ -971,11 +996,11 @@
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block font-medium text-slate-700 mb-1">Email Address</label>
-                    <input type="email" id="auth-email" value="student@cpa.com" class="w-full p-2.5 rounded-lg border border-slate-300 font-sans focus:ring-2 focus:ring-sky-500">
+                    <input type="email" id="auth-email" placeholder="student@example.com" class="w-full p-2.5 rounded-lg border border-slate-300 font-sans focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                     <label class="block font-medium text-slate-700 mb-1">Password</label>
-                    <input type="password" id="auth-password" value="pass123" class="w-full p-2.5 rounded-lg border border-slate-300 font-sans focus:ring-2 focus:ring-sky-500">
+                    <input type="password" id="auth-password" placeholder="••••••••" class="w-full p-2.5 rounded-lg border border-slate-300 font-sans focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div id="auth-error" class="hidden text-red-600 font-medium text-xs"></div>
             </div>
@@ -1457,10 +1482,11 @@
                 document.getElementById('stat-mastery').innerText = Math.round(profile.mastery_percent) + "%";
                 
                 const token = localStorage.getItem('cpa_jwt_token');
-                const isStudentFallback = (profile.user && profile.user.email === "student@cpa.com" && !token);
+                const isStudentFallback = (profile.user && profile.user.email === "student@example.com" && !token);
 
                 const tabHomeLabel = document.getElementById('tab-home-label');
                 const tabHomeIcon = document.getElementById('tab-home-icon');
+                const adminBtn = document.getElementById('admin-panel-btn');
 
                 if (profile.user && !isStudentFallback) {
                     isLoggedInUser = true;
@@ -1477,6 +1503,14 @@
                     if (tabHomeLabel) tabHomeLabel.innerText = "Dashboard";
                     if (tabHomeIcon) tabHomeIcon.className = "fa-solid fa-gauge-high text-sky-600";
 
+                    if (adminBtn) {
+                        if (profile.user.is_admin) {
+                            adminBtn.classList.remove('hidden');
+                        } else {
+                            adminBtn.classList.add('hidden');
+                        }
+                    }
+
                     if (profile.user.target_exam_date) {
                         document.getElementById('settings-exam-date').value = profile.user.target_exam_date.split('T')[0];
                     }
@@ -1487,6 +1521,7 @@
                     document.getElementById('user-email-label').innerText = "Sign In / Register";
                     if (tabHomeLabel) tabHomeLabel.innerText = "Home";
                     if (tabHomeIcon) tabHomeIcon.className = "fa-solid fa-house text-sky-600";
+                    if (adminBtn) adminBtn.classList.add('hidden');
 
                     const qrBtn = document.getElementById('qr-header-btn');
                     if (qrBtn) qrBtn.classList.remove('hidden');
