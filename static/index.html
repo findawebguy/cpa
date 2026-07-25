@@ -1250,17 +1250,26 @@
             }
         }
 
-        // Web Audio API Synthesizer (Lazy-instantiated on user interaction)
+        // Web Audio API Synthesizer (Lazy-instantiated on user gesture)
         let audioCtx = null;
+        function initAudioOnUserGesture() {
+            if (!audioCtx) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch(e) {}
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
+            }
+        }
+        window.addEventListener('click', initAudioOnUserGesture, { passive: true });
+        window.addEventListener('keydown', initAudioOnUserGesture, { passive: true });
+
         function playSound(type) {
             if (isAudioMuted) return;
+            initAudioOnUserGesture();
+            if (!audioCtx || audioCtx.state !== 'running') return;
             try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
@@ -1301,8 +1310,8 @@
         let studyModulesData = [];
 
         // View Switcher
-        async function switchView(viewName) {
-            playSound('click');
+        async function switchView(viewName, triggerAudio = true) {
+            if (triggerAudio) playSound('click');
             currentView = viewName;
             
             document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -2414,9 +2423,9 @@
 
             // Navigate to Dashboard for logged in candidates, or Home landing page for guests
             if (isLoggedInUser) {
-                await switchView('dashboard');
+                await switchView('dashboard', false);
             } else {
-                await switchView('home');
+                await switchView('home', false);
             }
         };
         // --- CASE STUDIES LOGIC ---
