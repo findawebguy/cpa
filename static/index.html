@@ -1250,11 +1250,17 @@
             }
         }
 
-        // Web Audio API Synthesizer
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // Web Audio API Synthesizer (Lazy-instantiated on user interaction)
+        let audioCtx = null;
         function playSound(type) {
             if (isAudioMuted) return;
             try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
