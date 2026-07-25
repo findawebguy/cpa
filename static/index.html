@@ -329,7 +329,7 @@
                         Master the CPA Exam with <span class="bg-gradient-to-r from-sky-400 to-indigo-300 bg-clip-text text-transparent">Bayesian Adaptive Intelligence</span>
                     </h1>
                     <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
-                        Empower your study routine with real-time confidence calibration, interactive Task-Based Simulations (TBS), instant NVIDIA AI FASB/IRC codification lookups, and seamless passkey authentication across all devices.
+                        Empower your study routine with real-time confidence calibration, interactive Task-Based Simulations (TBS), instant AI FASB/IRC codification lookups, and seamless passkey authentication across all devices.
                     </p>
                     <div class="flex flex-wrap items-center gap-4 pt-2">
                         <button onclick="switchView('adaptive')" class="px-6 py-3 bg-sky-500 hover:bg-sky-400 text-white font-bold text-sm rounded-xl shadow-lg shadow-sky-500/30 transition flex items-center gap-2">
@@ -370,7 +370,7 @@
                     <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-robot"></i>
                     </div>
-                    <h3 class="font-bold text-slate-900 text-base">NVIDIA FASB / IRC AI Agent</h3>
+                    <h3 class="font-bold text-slate-900 text-base">FASB / IRC AI Standards Agent</h3>
                     <p class="text-xs text-slate-600 leading-relaxed">
                         Integrated AI assistant provides direct FASB ASC codification and Internal Revenue Code citations with live market context for complex scenarios.
                     </p>
@@ -1061,7 +1061,7 @@
             <!-- Admin Footer -->
             <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 shrink-0 flex justify-between items-center">
                 <div class="flex flex-wrap gap-2">
-                    <button onclick="triggerLiveNewsIngestionUI()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow-sm" title="Trigger Senior Financial Analyst AI Agent (NVIDIA NIM) to review & ingest live news feed.">
+                    <button onclick="triggerLiveNewsIngestionUI()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow-sm" title="Trigger Senior Financial Analyst AI Agent to review & ingest live news feed.">
                         <i class="fa-solid fa-rss"></i> Ingest Live News
                     </button>
                     <button onclick="adminReseed()" class="px-3 py-1.5 text-rose-600 hover:bg-rose-50 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 border border-rose-200" title="Delete all curriculum data and re-seed from code. This resets all user progress.">
@@ -1170,7 +1170,7 @@
 
         async function triggerLiveNewsIngestionUI() {
             playSound('click');
-            const loadingToast = showToast('<strong>Live News Ingestion Started:</strong> Invoking Senior Financial Analyst Agent (NVIDIA NIM)...', 'loading', 0);
+            const loadingToast = showToast('<strong>Live News Ingestion Started:</strong> Invoking Senior Financial Analyst Agent...', 'loading', 0);
 
             try {
                 const res = await window.cpaApi.triggerDailyLiveNewsIngestion();
